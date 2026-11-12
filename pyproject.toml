@@ -13,6 +13,7 @@ dependencies = [
     "pgvector>=0.3.6",
     "fastembed>=0.5",
     "pyyaml>=6.0",
+    "google-genai>=3.0.0",
 ]
 
 [dependency-groups]
@@ -23,3 +24,4 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = ["ignore::SyntaxWarning"]  # noise from the google-genai SDK, not our code

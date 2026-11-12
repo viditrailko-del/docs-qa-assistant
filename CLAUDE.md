@@ -158,6 +158,22 @@ Vector search, then hybrid (vectors + full-text, e.g. reciprocal rank fusion). M
 ### Phase 3: answer generation
 Gemini structured output: `answer` + `claims[{chunk_id, quote}]` or `refused` + reason. Raw response saved, validation retry, versioned prompts, tokens/cost/latency recorded per call.
 
+**Done (2026-11-12).** Smoke test, 4 real questions, all answered by `gemini-3.5-flash` first try, 7/7 quotes exact substrings of the cited chunk, ~$0.003-0.012 and 2-30 s per question:
+- hotel limit: correct ($300 + dynamic policy) but `sources_disagree=true` because it also cited the *sponsored travel* GSA rate (a different program, not a contradiction): over-flagging, a prompt v2 candidate.
+- payday (u02): correctly refused; did not use the "25th" decoy.
+- team dinner (q17): both limits ($80 reimbursed / $100 purchasing card), `sources_disagree=true`. 
+- parental leave (q30): "16 weeks" is right, but cited from the **Canada and UK pages** and generalized ("generally provides"): right answer from the wrong evidence, because the company-wide chunk isn't retrieved (Phase 2 finding). Phase 4/5 should catch "general claim backed only by country-scoped sources".
+- `.env` holds only `GEMINI_API_KEY` (copied from the invoice project, gitignored).
+
+What was built:
+- `app/schemas/answer.py` `LLMAnswer` (source of truth, sent as `response_json_schema`): `answerable`, `statements[{text, citations[{source: "S1", quote}]}]`, `refusal_reason`, `sources_disagree`. Statement-level citations so Phase 4 can verify each sentence. Consistency rules (answerable ⇒ ≥1 statement, every statement cited, labels like `S\d+`, refusal needs a reason) are a `model_validator`, NOT schema keywords: Gemini supports only part of JSON Schema (`tests` assert no `pattern`/`minItems`/`minLength` leak into the schema).
+- Retrieved chunks are shown to the model as `[S1] title / Section: heading_path / text`, in retrieval order; labels map back to chunk ids (`asks.sources`). Unknown labels stay `chunk_id: null` in the API (Phase 4 flags them).
+- Prompt `app/answering/prompts/v1.txt`: sources only, exact contiguous quotes ≤ ~30 words, numbers must appear in quotes, report disagreements (`sources_disagree`), mind country/entity scope, decoys don't answer, partial answers say what's missing. Filled with `str.replace` (handbook text has braces).
+- `app/answering/core.py` `answer_question()` (no DB, reused by the eval later): no hits → refused without LLM; transient errors retried 2× with backoff, then fallback model; daily-quota 429 skips straight to fallback; invalid output → one retry with the errors; everything failing → `failed`. Every call goes to a `RunRecorder` before parsing.
+- Tables (migration `0003`): `asks` (question, status pending/answered/refused/failed, retrieval_method, k, sources JSON, answer_json, prompt_version) and `llm_calls` (raw_response, error, latency, tokens, cost_usd). `DbRecorder` commits each call immediately.
+- `POST /ask {question, k?}` → status, answer, statements with citations resolved to chunk/path/URL, refusal_reason, sources, llm_calls. LLM down / no key → HTTP 200 `failed`, never 500. `GET /ask/{id}`. Default k = `retrieval_k` = 8.
+- 61 tests (fake LLM in conftest: scripted replies or `LLMError`s).
+
 ### Phase 4: verification checks (the differentiator)
 - `quote_not_in_source`: quote not found in the cited chunk (after normalizing case/spacing)
 - `cited_unretrieved`: cites a chunk that wasn't retrieved
@@ -183,7 +199,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 0 | Corpus snapshot + labeled question set | done (60 pages, 61 verified questions) |
 | 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | done (60 docs, 1407 chunks, 24 tests) |
 | 2 | Hybrid retrieval + retrieval eval | done (vector default: hit@5 0.92, MRR 0.75; hybrid measured, lost) |
-| 3 | Gemini answers with cited quotes | not started |
+| 3 | Gemini answers with cited quotes | done (POST /ask, prompt v1, 61 tests, smoke test 4/4) |
 | 4 | Verification checks + refusal policy | not started |
 | 5 | Eval harness (confident-wrong answers headline) | not started |
 | 6 | Hardening: logging, Docker prod, README numbers, CI | not started |

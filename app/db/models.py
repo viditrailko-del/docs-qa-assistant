@@ -1,9 +1,24 @@
 import uuid
 from datetime import datetime
 
+from decimal import Decimal
+from typing import Any
+
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Computed, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy import (
+    JSON,
+    Computed,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # bge-small-en-v1.5 returns 384 numbers per text. A different model needs a migration.
@@ -14,6 +29,9 @@ SEARCH_TSV_SQL = (
     "setweight(to_tsvector('english', coalesce(heading_path, '')), 'B') || "
     "setweight(to_tsvector('english', coalesce(text, '')), 'A')"
 )
+
+
+JsonType = JSON().with_variant(JSONB(), "postgresql")
 
 
 class Base(DeclarativeBase):
@@ -62,3 +80,47 @@ class Chunk(Base):
     )
 
     document: Mapped[Document] = relationship(back_populates="chunks")
+
+
+class Ask(Base):
+    """One question asked through POST /ask: what was retrieved and what came back."""
+
+    __tablename__ = "asks"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    question: Mapped[str] = mapped_column(Text)
+    # pending -> answered | refused | failed  (plain string: no Postgres enum to migrate)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    retrieval_method: Mapped[str] = mapped_column(String(20))
+    k: Mapped[int] = mapped_column(Integer)
+    # [{label, chunk_id, similarity, path, heading_path, source_url}] in the order the LLM saw them
+    sources: Mapped[list[dict[str, Any]]] = mapped_column(JsonType, default=list)
+    answer_json: Mapped[dict[str, Any] | None] = mapped_column(JsonType)  # validated LLMAnswer
+    prompt_version: Mapped[str] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    llm_calls: Mapped[list["LlmCall"]] = relationship(
+        back_populates="ask", cascade="all, delete-orphan", order_by="LlmCall.id"
+    )
+
+
+class LlmCall(Base):
+    """One LLM call. The raw response is saved BEFORE parsing, so nothing the model said is lost."""
+
+    __tablename__ = "llm_calls"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ask_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("asks.id", ondelete="CASCADE"), index=True)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column(String(20))
+    raw_response: Mapped[str | None] = mapped_column(Text)
+    error: Mapped[str | None] = mapped_column(Text)  # API error, or "validation: ..." for bad output
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    thinking_tokens: Mapped[int | None] = mapped_column(Integer)
+    cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(10, 6))  # null = unknown price, never 0
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    ask: Mapped[Ask] = relationship(back_populates="llm_calls")
