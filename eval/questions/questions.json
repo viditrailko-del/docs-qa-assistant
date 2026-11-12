@@ -1,0 +1,1239 @@
+{
+  "corpus_commit": "7466a0c8323e9a5d31afc51bfa3c858055d05324",
+  "format": {
+    "type": "simple (one passage) | multi (needs 2+ passages) | tricky (easy to answer from the wrong passage) | conflict (sources disagree: a good answer reports both) | unanswerable (corpus does not say: the right answer is a refusal)",
+    "expect": "answer | answer_both (conflict) | refuse",
+    "key_facts": "short strings a correct answer must contain (compared after normalizing case/spacing); each must appear in a cited source file",
+    "sources": "evidence: path under corpus/handbook + an exact quote from that file",
+    "near_miss": "passages that look relevant but do NOT answer the question (traps for retrieval and the LLM)"
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long do I have to submit an expense claim before it stops being reimbursed?",
+      "answer": "Within 90 days of the purchase date. Claims older than 90 days are not reimbursed unless your manager approves them.",
+      "key_facts": [
+        "90 days"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "Expense claims over 90 days from purchase date will not be reimbursed unless approved by the Manager."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q02",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What is the hotel limit per night on a business trip?",
+      "answer": "Up to $300 USD (or local equivalent) per night including tax, for a standard room, booked with 7 days' lead time. Navan's dynamic policy can allow more in expensive areas; bookings over 20% above it are flagged for manager review.",
+      "key_facts": [
+        "$300"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "Hotel stays are reimbursable up to $300 USD (or equivalent local currency) inclusive of tax per night for standard rooms, with a 7 day booking lead time."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q03",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How much can I spend per day on my own meals while traveling for work?",
+      "answer": "Up to $120 USD (or local equivalent) per day. Tips up to 20% are allowed but count toward the limit.",
+      "key_facts": [
+        "$120"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "Meals while traveling on Company business are reimbursable, up to $120 USD (or local equivalent currency) per day."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q04",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How much home office budget does a new hire get?",
+      "answer": "A one-time 1,500 USD (or local equivalent) stipend in the first year, paid as reimbursement through Navan (expense type 'Work From Home – New Hire Stipend').",
+      "key_facts": [
+        "1,500"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "new hires will receive a 1,500 USD (or equivalent local currency) stipend to help you towards setting up your home office in your first year."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q05",
+      "type": "multi",
+      "expect": "answer",
+      "question": "I joined in May last year. Do I get the yearly home office refresh this January?",
+      "answer": "No. The 500 USD yearly refresh only applies to team members employed the entire previous calendar year; people hired during the previous year are not eligible yet (example: someone who started 2023-05-10 gets the first refresh on 2025-01-01).",
+      "key_facts": [
+        "500",
+        "not eligible"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "This only applies to Team Members who have been employed the entire previous calendar year."
+        },
+        {
+          "path": "finance/expenses.md",
+          "quote": "Team Members hired within the previous calendar year are not eligible."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q06",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Can I expense a walking pad for my home office?",
+      "answer": "No. Walking pads/treadmills are explicitly listed as not reimbursable (along with phones, smart speakers, tablets, shelves and other furniture).",
+      "key_facts": [
+        "not reimbursable"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "In addition the following items are not reimbursable: Phones, watches, smart speakers, smart TVs/smart monitors, walking pads/treadmills"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q07",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How far in advance should I book an international flight?",
+      "answer": "At least 21 days in advance (domestic: at least 14 days). Flights booked less than 14 days ahead are flagged as out of policy.",
+      "key_facts": [
+        "21 days"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "International: At least 21 days in advance"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q08",
+      "type": "tricky",
+      "expect": "answer",
+      "question": "When can I fly business class?",
+      "answer": "Only if you travel frequently: 3 or more international trips per quarter on flights of 8+ hours continuous flight time, and the trip is for meeting customers, a speaking engagement, or representing GitLab at a conference. Otherwise, flights over 5 hours of consecutive flight time allow the next class up from standard economy, but below business class.",
+      "key_facts": [
+        "8",
+        "below business class"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "business class is permitted when traveling for any of the following reasons"
+        },
+        {
+          "path": "finance/expenses.md",
+          "quote": "team members are authorized to book the next class up from standard economy as long as it is below business class."
+        }
+      ],
+      "notes": "Trap: answering only the >5h rule ('next class up') as if it allowed business class.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q09",
+      "type": "simple",
+      "expect": "answer",
+      "question": "I'm 2 meters tall. Can I get a seat upgrade on business flights?",
+      "answer": "Yes: one class of upgrade is permitted with manager approval for team members over 6'5\"/2m.",
+      "key_facts": [
+        "manager approval"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "One class of upgrade is permitted with Manager approval for team members over 6'5"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q10",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What's the monthly limit for a co-working space?",
+      "answer": "$700 per month, with pre-approval. The space must be within commutable distance (about 50 km) of your home, and only the rent is reimbursable. Day passes: $100 per day, up to 5 days a month without extra approval.",
+      "key_facts": [
+        "$700"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "$700.00 Limit per month."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q11",
+      "type": "multi",
+      "expect": "answer",
+      "question": "I rent a co-working space for the whole month. Can I also expense my home internet?",
+      "answer": "No. If you expense a co-working space for a full month, home internet cannot be expensed. If you only use co-working for a few days, home internet can be expensed in full (internet cap $100).",
+      "key_facts": [
+        "cannot be expensed"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "if you expense a co-working space for a full month then internet for home cannot be expensed."
+        },
+        {
+          "path": "finance/expenses.md",
+          "quote": "Monthly service charges for the internet are reimbursable"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q12",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Do US team members need receipts for every expense?",
+      "answer": "No. US team members only need receipts for expenses over $50 USD; non-US team members need receipts for all expenses.",
+      "key_facts": [
+        "$50"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "US Team Members are required to only submit receipts for any expenses over $50 USD."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q13",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How much can I spend on work-related books per year?",
+      "answer": "$60 per year (audio and e-books included), if the books help you in your job.",
+      "key_facts": [
+        "$60"
+      ],
+      "sources": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "Limit is set to $60/year."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q14",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Can I buy a software subscription on my personal card and expense it?",
+      "answer": "No. All software purchases charged to personal or corporate credit cards are denied for reimbursement. Request it through the individual use software process; once approved, Procurement issues a one-time virtual card.",
+      "key_facts": [
+        "denied"
+      ],
+      "sources": [
+        {
+          "path": "finance/procurement/individual-use-software.md",
+          "quote": "all software purchases charged to either personal or corporate credit cards will be DENIED for reimbursement."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q15",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What is the maximum I can spend per year on individual use software?",
+      "answer": "$5,000 per person per year. Above that, or if several people on the team need it, use the procurement process.",
+      "key_facts": [
+        "$5,000"
+      ],
+      "sources": [
+        {
+          "path": "finance/procurement/individual-use-software.md",
+          "quote": "An individual's annual expenditure on Individual Use software should not surpass $5,000."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q16",
+      "type": "multi",
+      "expect": "answer",
+      "question": "How much can a manager spend on a gift for a team member's significant life event?",
+      "answer": "Up to $125 USD per gift, including shipping. Gift cards are not allowed, and baby gifts are not reimbursable (GitLab already sends one).",
+      "key_facts": [
+        "$125"
+      ],
+      "sources": [
+        {
+          "path": "finance/accounts-payable/corp-credit-cards.md",
+          "quote": "Gifts can be purchased for significant life events up to $125 USD."
+        },
+        {
+          "path": "finance/expenses.md",
+          "quote": "The allowable cost for gifts is up to $125 USD (including shipping) per gift."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q17",
+      "type": "conflict",
+      "expect": "answer_both",
+      "question": "What is the per-person limit for a team dinner?",
+      "answer": "It depends on how it's paid. On a Navan purchasing card, team meals of up to 20 people should not exceed $100 per person. Under the travel & expense reimbursement policy, team events and meals have an $80 limit per person per meal.",
+      "key_facts": [
+        "$100",
+        "$80"
+      ],
+      "sources": [
+        {
+          "path": "finance/accounts-payable/corp-credit-cards.md",
+          "quote": "Team meals of up to 20 people which should not exceed $100 per person"
+        },
+        {
+          "path": "finance/expenses.md",
+          "quote": "$80 limit per person per meal."
+        }
+      ],
+      "notes": "Two policies, two limits. Reporting only one of them is incomplete.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q18",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long do I have to upload receipts for Navan purchasing card charges?",
+      "answer": "Within 30 days of the transaction date.",
+      "key_facts": [
+        "30 days"
+      ],
+      "sources": [
+        {
+          "path": "finance/accounts-payable/corp-credit-cards.md",
+          "quote": "Receipts must be uploaded into Navan within 30 days of the transaction date."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q19",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How do I pay for a charitable donation of $10,000?",
+      "answer": "Donations over $5,000 need the recipient set up in Coupa and the PO process: create a purchase request in Zip. (Under $5,000, contact AP to pay it as an exception.) Approvals per the Philanthropy Policy come first.",
+      "key_facts": [
+        "Zip",
+        "Coupa"
+      ],
+      "sources": [
+        {
+          "path": "finance/procurement/charitable-contributions.md",
+          "quote": "if the donation is >$5,000, we will need to set the recipient up in Coupa and follow the PO process in order to issue payment."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q20",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Which countries can't I take my company laptop to?",
+      "answer": "US-embargoed countries and regions: Cuba, Iran, North Korea, Syria, and the Crimea, Donetsk and Luhansk regions of Ukraine. Also Russia and Belarus. The list can change without notice.",
+      "key_facts": [
+        "Cuba",
+        "Iran",
+        "North Korea",
+        "Syria",
+        "Russia",
+        "Belarus"
+      ],
+      "sources": [
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "US-embargoed countries currently include Cuba, Iran, North Korea, and Syria"
+        },
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "team members cannot take company-owned devices to or otherwise work from Russia or Belarus"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q21",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What should I do if border control demands my laptop password?",
+      "answer": "Comply without protesting. Afterwards, if you gave a password to any device or account with access to GitLab resources (or a device was seized or taken out of sight), engage the Security on-call as soon as you safely can.",
+      "key_facts": [
+        "comply",
+        "Security on-call"
+      ],
+      "sources": [
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "GitLab recommends that you comply with any such requests without protesting."
+        },
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "you should follow the process to engage Security on-call as soon as you can safely do so."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q22",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What number do I call for a medical emergency on a business trip?",
+      "answer": "International SOS 24/7 assistance: +1 215 942 8226 (or the ISOS Assistance app). ISOS arranges care and handles payments with providers.",
+      "key_facts": [
+        "+1 215 942 8226"
+      ],
+      "sources": [
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "International SOS 24/7 Assistance:* +1 215 942 8226"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q23",
+      "type": "conflict",
+      "expect": "answer_both",
+      "question": "How long can a business trip be and still be covered by the business travel insurance?",
+      "answer": "The handbook disagrees: the Travel page says trips of less than 180 days are covered, while the company-wide Benefits page says trips up to 365 days. Check the Chubb policy document or ask the benefits team.",
+      "key_facts": [
+        "180",
+        "365"
+      ],
+      "sources": [
+        {
+          "path": "finance/travel/_index.md",
+          "quote": "Covered for trips less than 180 days"
+        },
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "Coverage for trips up to 365 days"
+        }
+      ],
+      "notes": "Real inconsistency in the snapshot. The two pages also disagree on personal deviation (25% of trip length vs up to 14 days).",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q24",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How much is the referral bonus?",
+      "answer": "A flat $1,500 base referral bonus, paid once the new team member has been employed for 3 months. (A temporary higher bonus applied to Account Executive hires between December 8, 2025 and February 23, 2026.)",
+      "key_facts": [
+        "$1,500",
+        "3 months"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "base referral bonus for a new hire."
+        },
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "We offer a referral bonus once the new team member has been employed with the company for 3 months."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q25",
+      "type": "multi",
+      "expect": "answer",
+      "question": "Do I get a referral bonus for referring someone who used to work at GitLab?",
+      "answer": "No. A former team member does not count as a referral, and there is no bonus for referring a boomerang (returning) team member.",
+      "key_facts": [
+        "no"
+      ],
+      "sources": [
+        {
+          "path": "hiring/referral-process.md",
+          "quote": "A former Team Member"
+        },
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "no bonus for referring a Boomerang Team Member (returning team member)"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q26",
+      "type": "multi",
+      "expect": "answer",
+      "question": "Do I get a referral bonus if I refer an intern?",
+      "answer": "Not for the internship: contract and temporary roles, including internships, aren't eligible. You get the bonus if the intern is later converted to a full-time, intermediate-level team member.",
+      "key_facts": [
+        "converted"
+      ],
+      "sources": [
+        {
+          "path": "hiring/referral-process.md",
+          "quote": "Contract or temporary roles, including Internships, are not eligible for referral bonuses."
+        },
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "You will be paid a referral bonus if the referral(intern) is converted to a full-time, intermediate-level team member."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q27",
+      "type": "conflict",
+      "expect": "answer_both",
+      "question": "Two of us referred the same candidate for the same role. Who gets the bonus?",
+      "answer": "The handbook gives two rules: the referral process page says the first team member to submit the candidate is the referrer; the incentives page says People Ops asks the new hire who referred them, and if they name two or more people the bonus is split.",
+      "key_facts": [
+        "first",
+        "split"
+      ],
+      "sources": [
+        {
+          "path": "hiring/referral-process.md",
+          "quote": "Team Member to have submit the candidate will be considered their"
+        },
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "If they mention two or more people then the bonus will be split between them."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q28",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long does a candidate count as my referral?",
+      "answer": "6 months from the date Talent Acquisition receives the referral, for jobs in the same job family. After that they count as an applicant.",
+      "key_facts": [
+        "6 months"
+      ],
+      "sources": [
+        {
+          "path": "hiring/referral-process.md",
+          "quote": "Your referral is classified as your referral for 6 months (from the date TA receives the referral) for jobs within the same job family."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q29",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How quickly will my referral be reviewed?",
+      "answer": "Within 5 business days of submission.",
+      "key_facts": [
+        "5 business days"
+      ],
+      "sources": [
+        {
+          "path": "hiring/referral-process.md",
+          "quote": "You can expect Referrals to be reviewed by the Hiring Team within"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q30",
+      "type": "tricky",
+      "expect": "answer",
+      "question": "How many weeks of paid parental leave does GitLab give?",
+      "answer": "16 weeks of paid leave, for birth or adoption, available from your first day. It must be used within the child's first year (or first anniversary of adoption) and can be split into up to three segments.",
+      "key_facts": [
+        "16 weeks"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "you'll have 16 weeks of paid leave"
+        },
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "Available from your first day of work"
+        }
+      ],
+      "near_miss": [
+        {
+          "path": "total-rewards/benefits/parental-leave-toolkit.md",
+          "quote": "Prepare a coverage plan with their managers and fellow team members."
+        }
+      ],
+      "notes": "The 'parental leave toolkit' page sounds most relevant but never states the length.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q31",
+      "type": "simple",
+      "expect": "answer",
+      "question": "When should I sign up for Parentaly?",
+      "answer": "2-3 months before your parental leave starts (you can also join during leave or early after returning).",
+      "key_facts": [
+        "2-3 months"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "Participants should sign up 2-3 months before starting their parental leave"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q32",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How much is the Growth and Development fund?",
+      "answer": "Up to $10,000 per year (January 1 - December 31), subject to tenure, performance and available budget.",
+      "key_facts": [
+        "$10,000"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "we provide up to $10,000 each year specifically for your career development."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q33",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Does GitLab give life insurance if my country has no local plan?",
+      "answer": "Yes: $20,000 of life insurance coverage to a beneficiary you choose, where no entity-specific life insurance exists (pro-rated for part-time).",
+      "key_facts": [
+        "$20,000"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "GitLab provides $20,000 in life insurance coverage"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q34",
+      "type": "tricky",
+      "expect": "answer",
+      "question": "Can I lease an electric car through salary sacrifice in Australia?",
+      "answer": "No. GitLab evaluated vehicle salary sacrifice and novated leasing (including Australia and the UK) and decided not to offer them, company-wide.",
+      "key_facts": [
+        "not"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "has decided not to offer these benefits at this time."
+        }
+      ],
+      "notes": "A 'no' that IS in the documents: refusing here is wrong.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q35",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What is the 401(k) company match in the US?",
+      "answer": "50% of your contributions on the first 6% of earnings, up to $1,500 per year.",
+      "key_facts": [
+        "50%",
+        "6%",
+        "$1,500"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/inc-benefits-us/_index.md",
+          "quote": "50% of contributions on the first 6% of earnings (up to $1,500 annually)"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q36",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What is the RRSP match for employees in Canada?",
+      "answer": "Employer matching up to 3% of base salary, maximum $2,500 CAD per year (Group RRSP with Canada Life).",
+      "key_facts": [
+        "3%",
+        "$2,500"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/canada-corp-benefits.md",
+          "quote": "Employer matching up to 3% of base salary (maximum $2,500 CAD annually)."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q37",
+      "type": "tricky",
+      "expect": "answer",
+      "question": "I've worked at GitLab Korea for 2 years. How many days of annual leave do I get?",
+      "answer": "15 days per year (1.25 days per month), the tier for 1-3 years of service.",
+      "key_facts": [
+        "15 days"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/korea-ltd-benefits.md",
+          "quote": "Team members with 1-3 years of service are entitled to 1.25 days/month or 15 days/year."
+        }
+      ],
+      "notes": "Requires picking the right tier.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q38",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Who is automatically enrolled in the UK pension scheme?",
+      "answer": "Team members who earn over £10,000 a year, are aged 22 or over, and are under State Pension Age (Group Personal Pension with Scottish Widows).",
+      "key_facts": [
+        "£10,000",
+        "22"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/ltd-benefits-uk.md",
+          "quote": "Earn over £10,000 annually"
+        },
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/ltd-benefits-uk.md",
+          "quote": "Are aged 22 or over"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q39",
+      "type": "simple",
+      "expect": "answer",
+      "question": "In the UK, what does income protection pay if I'm off sick long-term?",
+      "answer": "66% of base salary, after 13 weeks of absence (Group Income Protection with Unum).",
+      "key_facts": [
+        "66%",
+        "13 weeks"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/ltd-benefits-uk.md",
+          "quote": "66% of base salary after 13 weeks absence"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q40",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long is maternity leave in Japan?",
+      "answer": "14 weeks of protected maternity leave, with two-thirds of base salary paid through a government allowance. It starts 6 weeks before the due date.",
+      "key_facts": [
+        "14 weeks"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/gitlab-gk.md",
+          "quote": "Take 14 weeks of protected maternity leave with two-thirds of your base salary through government allowance."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q41",
+      "type": "multi",
+      "expect": "answer",
+      "question": "In Singapore, how is paid maternity leave split for a first child?",
+      "answer": "Government-Paid Maternity Leave of 16 weeks: 8 weeks employer-paid + 8 weeks government-paid for 1st and 2nd births, if employed at least 3 months before the birth. The first 8 weeks must be continuous.",
+      "key_facts": [
+        "8 weeks",
+        "16 weeks"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/singapore-pte-ltd.md",
+          "quote": "8 weeks employer-paid + 8 weeks government-paid"
+        },
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/singapore-pte-ltd.md",
+          "quote": "Team members employed for at least 3 months before birth may be eligible"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q42",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long can a US team member be on military leave?",
+      "answer": "Military leave (USERRA) is job-protected for up to a cumulative 5 years.",
+      "key_facts": [
+        "5 years"
+      ],
+      "sources": [
+        {
+          "path": "people-policies/leave-of-absence/us.md",
+          "quote": "Military Leave (USERRA) | Cumulative 5 years"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q43",
+      "type": "multi",
+      "expect": "answer",
+      "question": "If I leave GitLab, how long do I have to exercise my stock options?",
+      "answer": "90 days (three months) after termination, for vested options; unvested options and RSUs are forfeited on your exit date.",
+      "key_facts": [
+        "90 days"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "they have 90 days post termination to exercise their vested options."
+        },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "you have a three month window to exercise your vested options, or lose them."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q44",
+      "type": "simple",
+      "expect": "answer",
+      "question": "What is the vesting schedule for stock options?",
+      "answer": "Four years, with a one-year cliff for new hire grants: a quarter vests after 12 months, then monthly, fully vested after 4 years. Refresh grants vest monthly after grant.",
+      "key_facts": [
+        "four year",
+        "one year"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "our standard practice is to issue options with a four year vesting schedule"
+        },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "this cliff period is generally one year."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q45",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How do promotion and refresh RSU grants vest?",
+      "answer": "No cliff; they vest quarterly over three years.",
+      "key_facts": [
+        "quarterly",
+        "three-year"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "Promotion and Refresh Grants do not require a cliff, begin vesting quarterly for three-year vest."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q46",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Who is eligible for the ESPP?",
+      "answer": "Team members employed by a GitLab entity with 50+ headcount, working more than 20 hours per week, actively employed at the start of the offering period (and on the last day of the purchase period to purchase).",
+      "key_facts": [
+        "20 hours",
+        "50+"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "Team members work more than 20 hours per week."
+        },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "Team member is employed via a GitLab entity with 50+ headcount"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q47",
+      "type": "multi",
+      "expect": "answer",
+      "question": "Can I nominate my own manager for a discretionary bonus, and how much is it?",
+      "answer": "No: direct managers and anyone in your management chain can't be nominated (self-nominations aren't allowed either). The award is a fixed $1,000 USD.",
+      "key_facts": [
+        "$1,000",
+        "management chain"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "$1,000 USD (fixed, at"
+        },
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "Direct managers or anyone in your management chain"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q48",
+      "type": "simple",
+      "expect": "answer",
+      "question": "My base salary is $100,000 and I covered an interim role for 31 days. What's the interim bonus?",
+      "answer": "$849.32: ($100,000 / 365) x 10% x 31 days, per the handbook's worked example.",
+      "key_facts": [
+        "$849.32"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/incentives.md",
+          "quote": "($100,000/365) x .10 x 31 = $849.32"
+        }
+      ],
+      "notes": "Number check: the answer must match the handbook's own arithmetic.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q49",
+      "type": "simple",
+      "expect": "answer",
+      "question": "How long do I need to be in my current role before applying for an internal transfer?",
+      "answer": "6 months in the current role (some roles, such as BDR, need 12 months).",
+      "key_facts": [
+        "6 months"
+      ],
+      "sources": [
+        {
+          "path": "hiring/talent-acquisition-framework/internal-hiring-process.md",
+          "quote": "Time in role eligibility will be 6 months in current role."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q50",
+      "type": "simple",
+      "expect": "answer",
+      "question": "I was rejected for not being qualified enough. When can I reapply for the same job?",
+      "answer": "After 6 months.",
+      "key_facts": [
+        "6 months"
+      ],
+      "sources": [
+        {
+          "path": "hiring/candidate-faq/_index.md",
+          "quote": "you are welcome to reapply to the same position once 6 months have passed."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q51",
+      "type": "simple",
+      "expect": "answer",
+      "question": "Can I share GitLab's revenue numbers publicly?",
+      "answer": "No. Financial information, including revenue and costs, is confidential because GitLab is a public company and investors rely on it when trading the stock.",
+      "key_facts": [
+        "confidential"
+      ],
+      "sources": [
+        {
+          "path": "communication/confidentiality-levels.md",
+          "quote": "Financial information, including revenue and costs for the company, is confidential because we are a public company"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q52",
+      "type": "simple",
+      "expect": "answer",
+      "question": "After a synchronous meeting, how quickly should decisions be written down?",
+      "answer": "Within 24 hours, with the owners, in the relevant issue or doc.",
+      "key_facts": [
+        "24 hours"
+      ],
+      "sources": [
+        {
+          "path": "communication/sync-vs-async-culture.md",
+          "quote": "Capture the decision and owners in writing within 24 hours"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u01",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "What is the vesting schedule for new-hire RSU grants?",
+      "answer": "The handbook doesn't say: it deliberately leaves out equity dates and points to an internal slide deck. (The four-year/one-year-cliff schedule is for stock options, and the three-year quarterly schedule is only for promotion and refresh RSUs.)",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "we do not add specific dates to the handbook regarding equity."
+        },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "our standard practice is to issue options with a four year vesting schedule"
+        },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "Promotion and Refresh Grants do not require a cliff, begin vesting quarterly for three-year vest."
+        }
+      ],
+      "notes": "Main trap: answering with the stock option schedule.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u02",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "On which day of the month is salary paid?",
+      "answer": "Not in these documents: the Payroll page only links to the internal handbook.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "finance/payroll.md",
+          "quote": "Please refer to the Payroll internal handbook page"
+        },
+        {
+          "path": "finance/accounts-payable/corp-credit-cards.md",
+          "quote": "will be debiting the amount on the 25th of each month."
+        }
+      ],
+      "notes": "Trap: the 25th is when Navan debits GitLab for card spend, not payday.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u03",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "What benefits do employees of GitLab GmbH in Germany get?",
+      "answer": "Not covered: the snapshot only links to the Germany entity page, which isn't included.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "GitLab GmbH (Germany)"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u04",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "What is GitLab's current share price?",
+      "answer": "Not in the documents.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "this must be done through your E*TRADE retail account during an open trading window."
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "q53",
+      "type": "tricky",
+      "expect": "answer",
+      "question": "Does GitLab reimburse gym memberships?",
+      "answer": "The documents don't mention reimbursing gym memberships. What exists is the HealthKick well-being platform: free for all team members worldwide, with discounts across fitness, nutrition and wellness services, plus fitness classes and workout plans.",
+      "key_facts": [
+        "HealthKick"
+      ],
+      "sources": [
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "connects you with discounts and resources across fitness, nutrition, and wellness services"
+        },
+        {
+          "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+          "quote": "No cost to team members"
+        }
+      ],
+      "near_miss": [
+        {
+          "path": "finance/expenses.md",
+          "quote": "such as gyms, country clubs, golf clubs, hotels, cafes, or recreational venues) is prohibited."
+        }
+      ],
+      "notes": "Was drafted as unanswerable; a refusal would miss a relevant benefit. Good answer: 'not reimbursed as such, but HealthKick...'. Must not invent a gym allowance.",
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u06",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "How much spending can a Director approve on their own?",
+      "answer": "Not in these documents: the Authorization Matrix page only links to the internal handbook.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "finance/authorization-matrix.md",
+          "quote": "Please refer to the authorization matrix"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u07",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "What is the procedure for recording my hours worked?",
+      "answer": "Not in these documents: the Timekeeping page only links to the internal handbook.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "finance/timekeeping/_index.md",
+          "quote": "Internal handbook link"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u08",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "Which apps are on the pre-approved individual use software list?",
+      "answer": "Not in these documents: the list is on an internal handbook page.",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "finance/procurement/individual-use-software.md",
+          "quote": "Pre-Approved Individual Use Software listing"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    },
+    {
+      "id": "u09",
+      "type": "unanswerable",
+      "expect": "refuse",
+      "question": "Which laptop model do new hires receive?",
+      "answer": "The documents don't specify. (A MacBook is only mentioned as an example of company property.)",
+      "key_facts": [],
+      "sources": [],
+      "near_miss": [
+        {
+          "path": "finance/spending-company-money.md",
+          "quote": "a MacBook for example"
+        }
+      ],
+      "verified_by": "Vidit",
+      "verified_at": "2026-11-12"
+    }
+  ]
+}

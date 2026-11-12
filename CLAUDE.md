@@ -95,6 +95,13 @@ tests/
   - **unanswerable** (plausible, but the docs don't say; tests refusals)
   - tricky (similar wording in the wrong section, numbers, dates)
 - Human-review every label.
+- **Question set drafted** (2026-11-12): `eval/questions/questions.json`, 61 questions (37 simple, 8 multi, 5 tricky, 3 conflict, 8 unanswerable). Each has `expect` (answer / answer_both / refuse), `key_facts`, `sources` (path + exact quote) and optional `near_miss` (passages that look relevant but don't answer: retrieval/LLM traps).
+  - `python -m scripts.check_questions` verifies every quote exists in its file and every key fact appears in the cited files (whitespace/curly-quote normalized). Run it after any edit; it will become a pytest.
+  - Review loop: `python -m scripts.make_question_review` → open `eval/questions/review.html` (gitignored) → mark OK/Problem → Download (or "Copy review to clipboard" when the download is blocked, which happened on file://) → `python -m scripts.apply_question_review <review.json> --by <name>` (sets `verified_by/at`).
+  - **All 61 human-verified** by Vidit on 2026-11-12. Any later edit to a question (or a new corpus commit) means re-reviewing it.
+  - Real corpus inconsistencies found while labeling (kept as `conflict` questions): business travel insurance trip length (Travel page: < 180 days; Benefits page: up to 365 days); duplicate-referral credit (first submitter vs ask the hire and split); team meal limit ($100/person on purchasing card vs $80/person/meal reimbursed).
+  - "Unanswerable" must be checked against the whole corpus, not one page: the gym question was moved to `tricky` because HealthKick offers fitness discounts.
+  - The Browser pane's `preview_start` was still reading the invoice project's launch.json in the session that created this repo; open `review.html` directly if `question-review` doesn't start.
 
 ### Phase 1: skeleton + ingestion
 FastAPI + Postgres/pgvector + Alembic. `POST /documents` with idempotent hashing, chunking with metadata, local embeddings, `GET` to inspect chunks.
@@ -127,7 +134,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 
 | Phase | Goal | Status |
 |---|---|---|
-| 0 | Corpus snapshot + labeled question set | in progress (corpus done, questions next) |
+| 0 | Corpus snapshot + labeled question set | done (60 pages, 61 verified questions) |
 | 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | not started |
 | 2 | Hybrid retrieval + retrieval eval | not started |
 | 3 | Gemini answers with cited quotes | not started |
