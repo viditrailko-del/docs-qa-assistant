@@ -32,9 +32,19 @@ class CitationOut(BaseModel):
     source_url: str | None
 
 
+class FlagOut(BaseModel):
+    code: str  # e.g. quote_not_in_source, number_unsupported, scope_mismatch
+    severity: str  # error | warning
+    reason: str
+    statement: int | None  # index into statements (None: about the whole answer)
+    citation: int | None
+
+
 class StatementOut(BaseModel):
     text: str
     citations: list[CitationOut]
+    verified: bool  # every check passed for this statement
+    flags: list[FlagOut]
 
 
 class LlmCallOut(BaseModel):
@@ -51,9 +61,10 @@ class LlmCallOut(BaseModel):
 class AskOut(BaseModel):
     id: uuid.UUID
     question: str
-    status: str  # answered | refused | failed
+    status: str  # answered | answered_with_flags | refused | failed
     answer: str | None  # the statements joined: convenient for display
     statements: list[StatementOut]
+    flags: list[FlagOut]  # all flags; each statement also lists its own
     sources_disagree: bool
     refusal_reason: str | None
     sources: list[SourceOut]
@@ -65,9 +76,12 @@ class AskOut(BaseModel):
     def from_ask(cls, ask: Ask) -> "AskOut":
         by_label = {s["label"]: s for s in ask.sources}
         data = ask.answer_json or {}
+        flags = [FlagOut(**f) for f in ask.flags or []]
         statements = [
             StatementOut(
                 text=st["text"],
+                flags=(own := [f for f in flags if f.statement == i]),
+                verified=not own,
                 citations=[
                     CitationOut(
                         source=c["source"], quote=c["quote"],
@@ -78,7 +92,7 @@ class AskOut(BaseModel):
                     for c in st["citations"]
                 ],
             )
-            for st in data.get("statements", [])
+            for i, st in enumerate(data.get("statements", []))
         ]
         refusal = data.get("refusal_reason") if ask.status == "refused" else None
         if ask.status == "refused" and not refusal and not ask.sources:
@@ -86,7 +100,7 @@ class AskOut(BaseModel):
         return cls(
             id=ask.id, question=ask.question, status=ask.status,
             answer=" ".join(s.text for s in statements) or None,
-            statements=statements, sources_disagree=bool(data.get("sources_disagree")),
+            statements=statements, flags=flags, sources_disagree=bool(data.get("sources_disagree")),
             refusal_reason=refusal, sources=[SourceOut(**s) for s in ask.sources],
             prompt_version=ask.prompt_version, created_at=ask.created_at,
             llm_calls=[LlmCallOut.model_validate(c, from_attributes=True) for c in ask.llm_calls],

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Retrieval: how many chunks the LLM sees. Eval: hit@5 0.92 vs hit@10 0.96, and full@10
     # (all evidence present, matters for conflicts) 0.91 vs full@5 0.83. 8 is the compromise.
     retrieval_k: int = 8
+    # > 0 adds a weak_retrieval warning below this cosine similarity. Off: no threshold separated
+    # answerable from unanswerable questions in the Phase 2 eval without overfitting.
+    min_similarity: float = 0.0
 
     # Answering (Gemini). Free tier: ~20 requests/day on the main model, then the fallback answers.
     gemini_api_key: str = ""

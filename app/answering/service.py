@@ -66,6 +66,7 @@ def ask_question(
         for s in outcome.sources
     ]
     ask.answer_json = outcome.answer.model_dump() if outcome.answer else None
+    ask.flags = [f.to_dict() for f in outcome.flags]
     ask.status = outcome.status.value
     ask.completed_at = func.now()
     db.commit()

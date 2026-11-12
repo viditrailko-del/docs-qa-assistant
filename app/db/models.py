@@ -17,6 +17,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -89,13 +90,15 @@ class Ask(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     question: Mapped[str] = mapped_column(Text)
-    # pending -> answered | refused | failed  (plain string: no Postgres enum to migrate)
+    # pending -> answered | answered_with_flags | refused | failed  (plain string: no enum to migrate)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     retrieval_method: Mapped[str] = mapped_column(String(20))
     k: Mapped[int] = mapped_column(Integer)
     # [{label, chunk_id, similarity, path, heading_path, source_url}] in the order the LLM saw them
     sources: Mapped[list[dict[str, Any]]] = mapped_column(JsonType, default=list)
     answer_json: Mapped[dict[str, Any] | None] = mapped_column(JsonType)  # validated LLMAnswer
+    # [{code, severity, reason, statement, citation}] from app/checks; recomputable from the rest
+    flags: Mapped[list[dict[str, Any]]] = mapped_column(JsonType, default=list, server_default=text("'[]'"))
     prompt_version: Mapped[str] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

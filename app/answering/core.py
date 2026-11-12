@@ -26,6 +26,8 @@ from pydantic import ValidationError
 
 from app.answering.client import LLMClient, LLMError
 from app.answering.pricing import cost_usd
+from app.checks.base import Flag, SourceText
+from app.checks.runner import run_checks
 from app.config import Settings
 from app.retrieval.search import Hit
 from app.schemas.answer import LLMAnswer
@@ -46,7 +48,8 @@ NO_SOURCES_REASON = "No documents matched the question."
 
 
 class AnswerStatus(StrEnum):
-    answered = "answered"
+    answered = "answered"  # every check passed
+    answered_with_flags = "answered_with_flags"  # shown, but marked: something couldn't be verified
     refused = "refused"  # the model (or the system) says the sources don't answer it
     failed = "failed"  # the LLM call or its output failed every attempt
 
@@ -88,6 +91,7 @@ class AnswerOutcome:
     sources: list[Source]
     answer: LLMAnswer | None = None
     attempts: list[Attempt] = field(default_factory=list)
+    flags: list[Flag] = field(default_factory=list)
 
     @property
     def refusal_reason(self) -> str | None:
@@ -150,9 +154,18 @@ def answer_question(
             prompt = base_prompt + RETRY_FEEDBACK.format(errors=_short_errors(e))
             continue
         outcome.answer = answer
-        outcome.status = AnswerStatus.answered if answer.answerable else AnswerStatus.refused
+        if not answer.answerable:
+            outcome.status = AnswerStatus.refused
+            return outcome
+        outcome.flags = run_checks(question, answer, source_texts(sources), min_similarity=settings.min_similarity)
+        outcome.status = AnswerStatus.answered_with_flags if outcome.flags else AnswerStatus.answered
         return outcome
     return outcome
+
+
+def source_texts(sources: Sequence[Source]) -> list[SourceText]:
+    return [SourceText(label=s.label, text=s.hit.text, heading_path=s.hit.heading_path, title=s.hit.title,
+                       path=s.hit.path, similarity=s.hit.similarity) for s in sources]
 
 
 def _call_llm(

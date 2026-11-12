@@ -180,6 +180,17 @@ What was built:
 - `number_unsupported`: number/date in the answer appears in no cited chunk
 - `low_retrieval_confidence`: best match too weak → refuse before calling the LLM
 
+**Done (2026-11-12).** `app/checks/` (pure: `(question, answer, sources) -> list[Flag]`, `Flag = code, severity, reason, statement, citation`), run by `runner.run_checks` inside `core.answer_question` (so the eval gets them too):
+- `unknown_source` (error): label not among the sources shown (this is `cited_unretrieved`: labels only map to retrieved chunks).
+- `quote_not_in_source` (error): `normalize(quote)` not a substring of the cited chunk. `normalize` forgives only formatting: curly/straight quotes, en/em dashes, `**`/`` ` ``, case, whitespace. Hint when the quote contains `...` (joined passages).
+- `number_unsupported` (error): every number in a statement must appear, by value ($1,500 = 1500 = 1,500.00), in the text or heading of a source **that statement cites**. Computed numbers are flagged on purpose. Numbers glued to letters (S1, v2) are labels; numbers in words aren't checked.
+- `scope_mismatch` (warning): question and statement name no country, but every cited source is country/entity-scoped. Scope comes from title + heading_path + file path tokens (Australia's page title is just "PTY LTD Benefits"), never body text. "US" is case-sensitive ("tell us"). Catches the q30 smoke-test answer (16 weeks from Canada+UK pages).
+- `weak_retrieval` (warning): opt-in via `MIN_SIMILARITY` (default 0 = off; Phase 2 found no non-overfit threshold).
+- Policy: any flag → status `answered_with_flags` (answer shown, marked); no flags → `answered`; refusals have nothing to check. API: `flags` on the answer and per statement, plus `statements[].verified`. Stored in `asks.flags` (migration `0004`, server default `[]`).
+- `python -m scripts.recheck_asks [--dry-run]` re-runs the checks on stored answers after a check changes (free, idempotent). Smoke-test answers: hotel + team dinner clean, parental leave → `scope_mismatch`.
+- 90 tests (`tests/test_checks.py`: pass/fail/edge per check, incl. the real q30 sources).
+- Known gap, by design for Phase 5 to measure: an answer built from a **decoy** with exact quotes (e.g. option vesting cited for an RSU question) passes every check. Quote checks prove the words exist, not that they answer the question.
+
 ### Phase 5: eval harness
 `answer` (real Gemini, freezes raw answers) / `score` (pure, re-runnable, free). Metrics:
 - **Headline: confident-wrong answers** = wrong answer with no flag and no refusal
@@ -200,7 +211,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | done (60 docs, 1407 chunks, 24 tests) |
 | 2 | Hybrid retrieval + retrieval eval | done (vector default: hit@5 0.92, MRR 0.75; hybrid measured, lost) |
 | 3 | Gemini answers with cited quotes | done (POST /ask, prompt v1, 61 tests, smoke test 4/4) |
-| 4 | Verification checks + refusal policy | not started |
+| 4 | Verification checks + refusal policy | done (4 checks + opt-in weak_retrieval, 90 tests) |
 | 5 | Eval harness (confident-wrong answers headline) | not started |
 | 6 | Hardening: logging, Docker prod, README numbers, CI | not started |
 

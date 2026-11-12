@@ -174,8 +174,30 @@ def test_ask_answers_with_resolved_citations(client, ingested, fake_llm):
 
 def test_citation_to_unknown_label_is_kept_but_unresolved(client, ingested, fake_llm):
     fake_llm.replies = [ANSWER_JSON.replace('"S1"', '"S9"')]
-    cit = client.post("/ask", json={"question": "books?"}).json()["statements"][0]["citations"][0]
+    body = client.post("/ask", json={"question": "books?"}).json()
+    cit = body["statements"][0]["citations"][0]
     assert cit["source"] == "S9" and cit["chunk_id"] is None
+    assert body["status"] == "answered_with_flags"
+    assert [f["code"] for f in body["statements"][0]["flags"]] == ["unknown_source"]
+
+
+def test_clean_answer_is_verified(client, ingested):
+    body = client.post("/ask", json={"question": "How much can I spend on books?"}).json()
+    assert body["status"] == "answered" and body["flags"] == []
+    assert body["statements"][0]["verified"] is True
+
+
+def test_invented_quote_and_number_are_flagged_per_statement(client, ingested, fake_llm):
+    fake_llm.replies = ["""{"answerable": true, "sources_disagree": false, "statements": [
+      {"text": "Books are limited to $60 a year.", "citations": [{"source": "S1", "quote": "Limit is set to $60/year."}]},
+      {"text": "Audiobooks get $90 extra.", "citations": [{"source": "S1", "quote": "Audiobooks get an extra $90."}]}]}"""]
+    body = client.post("/ask", json={"question": "books?"}).json()
+    assert body["status"] == "answered_with_flags"
+    first, second = body["statements"]
+    assert first["verified"] is True and first["flags"] == []
+    assert second["verified"] is False
+    assert sorted(f["code"] for f in second["flags"]) == ["number_unsupported", "quote_not_in_source"]
+    assert client.get(f"/ask/{body['id']}").json()["flags"] == body["flags"]  # stored
 
 
 def test_ask_refusal(client, ingested, fake_llm):
