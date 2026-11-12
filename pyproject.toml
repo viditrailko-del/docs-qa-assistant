@@ -1,0 +1,25 @@
+[project]
+name = "docs-qa-assistant"
+version = "0.1.0"
+description = "Docs Q&A assistant (RAG) with verified citations, refusals and an eval harness"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "sqlalchemy>=2.0.36",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "pydantic-settings>=2.6",
+    "python-multipart>=0.0.12",
+    "pgvector>=0.3.6",
+    "fastembed>=0.5",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.28",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

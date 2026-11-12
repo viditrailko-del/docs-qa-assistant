@@ -1,0 +1,43 @@
+services:
+  db:
+    # Postgres 16 with the pgvector extension preinstalled.
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag
+    ports:
+      - "5433:5432"  # 5433 on Windows so it can run next to the invoice project's 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs once on first start: creates the separate test database.
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build:
+      context: .
+      target: dev
+    command: uv run --frozen fastapi dev app/main.py --host 0.0.0.0 --port 8000
+    ports:
+      - "8001:8000"  # http://localhost:8001/docs (8000 is the invoice project)
+    environment:
+      # Inside Docker the DB host is the service name "db", not localhost.
+      DATABASE_URL: postgresql+psycopg://rag:rag@db:5432/rag
+      TEST_DATABASE_URL: postgresql+psycopg://rag:rag@db:5432/rag_test
+      WATCHFILES_FORCE_POLLING: "true"  # auto-reload needs polling on Windows bind mounts
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

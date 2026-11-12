@@ -38,6 +38,24 @@ Ask (POST /ask)
 
 Secrets live in `.env` (never committed); `.env.example` lists the keys.
 
+## Commands
+
+```bash
+docker compose up -d --wait                                                # Postgres+pgvector (localhost:5433) + API (http://localhost:8001/docs)
+docker compose run --rm -T api uv run --frozen pytest -q                   # all tests (rag_test DB, fake embedder)
+docker compose run --rm -T api uv run --frozen alembic upgrade head        # apply migrations
+docker compose run --rm -T api uv run --frozen alembic check               # models vs migrations drift
+docker compose run --rm -T api uv run --frozen python -m scripts.ingest_corpus   # ingest corpus (~3.5 min first time, idempotent)
+docker compose exec -T db psql -U rag -d rag -c "select ..."               # inspect DB
+docker compose build api                                                   # after changing dependencies or the embedding model
+python -m uv lock                                                          # after editing pyproject.toml (then rebuild)
+python -m scripts.check_questions                                          # stdlib-only scripts also run on plain Windows Python
+```
+
+- Ports 5433/8001 so this runs next to the invoice project (5432/8000). Source is bind-mounted; code edits auto-reload.
+- Tests use the separate `rag_test` DB (created + `vector` extension by `docker/init-test-db.sql`), built with `create_all`. The dev DB uses Alembic.
+- Docker Desktop must be running (`"C:\Program Files\Docker\Docker\Docker Desktop.exe"`).
+
 ## Budget constraints (free only)
 
 - No paid APIs. Gemini free tier: **~20 requests/day on the main model** (per-minute limit ~5). A full eval does not fit in one day on the main model: use the lite model, a subset, or spread runs over days.
@@ -106,6 +124,16 @@ tests/
 ### Phase 1: skeleton + ingestion
 FastAPI + Postgres/pgvector + Alembic. `POST /documents` with idempotent hashing, chunking with metadata, local embeddings, `GET` to inspect chunks.
 
+**Done (2026-11-12).** What exists and why:
+- Tables `documents` (content_hash unique, path, title, source_url, raw_text never modified) and `chunks` (seq, heading_path, text, char_count, `vector(384)` embedding, embed_model). No vector index: exact scan over ~1.4k chunks is fast and exact (matters for eval). Migration `0001` creates the `vector` extension.
+- `app/ingestion/markdown.py` (pure): front matter → title; strips Hugo shortcodes, HTML, comments, mermaid, link URLs; keeps panel headers / `<summary>` labels as bold lines (context like "GitLab LTD (UK)"); keeps Markdown emphasis + tables. Splits by headings (`heading_path` = "Title > H2 > H3"), packs paragraphs/lists/tables up to `chunk_max_chars`=1200, splits only blocks that are too long.
+- Embedding input = `heading_path + "\n\n" + text` (a bare "Limit is set to $60/year" gets its subject). Stored `text` is the passage alone.
+- Embeddings: fastembed 0.9 + `BAAI/bge-small-en-v1.5` (384 dims, ONNX, CPU), model baked into the image at `/opt/models`. **Questions use `embed_query`, chunks `embed_passages`** (bge uses a query prefix). `get_embedder()` is a cached FastAPI dependency; tests override it with `FakeEmbedder` (hash-based vectors).
+- `POST /documents` (multipart `file`, optional `path`, `source_url`): .md only (415), ≤ 5 MB (413), UTF-8 + some readable text (422), same bytes → 200 + existing document (no re-embedding). `GET /documents`, `/documents/{id}`, `/documents/{id}/chunks`, `/health`.
+- `scripts/ingest_corpus.py` verifies the corpus hashes, then ingests through the same service as the API, with the manifest's handbook URL as `source_url`.
+- Corpus result: 60 docs → **1407 chunks** (median ~600 chars). Tests assert every eval quote (sources + near misses, 86) lands inside one chunk, so a cited passage is never split.
+- First look at plain vector search (preview of Phase 2): hotel/home-office questions hit the right sections (similarity ~0.69-0.72); "how many weeks of parental leave" ranks **country pages** (Canada/NZ/Korea, ~0.91-0.93) above the company-wide 16-weeks passage; the unanswerable "payday" question tops out at ~0.68, but so do some answerable ones, so a refusal threshold on raw similarity alone won't separate them.
+
 ### Phase 2: retrieval + retrieval eval (no LLM, free)
 Vector search, then hybrid (vectors + full-text, e.g. reciprocal rank fusion). Measure recall@k / MRR against the question set. Tune chunk size/overlap here.
 
@@ -135,7 +163,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | Phase | Goal | Status |
 |---|---|---|
 | 0 | Corpus snapshot + labeled question set | done (60 pages, 61 verified questions) |
-| 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | not started |
+| 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | done (60 docs, 1407 chunks, 24 tests) |
 | 2 | Hybrid retrieval + retrieval eval | not started |
 | 3 | Gemini answers with cited quotes | not started |
 | 4 | Verification checks + refusal policy | not started |
