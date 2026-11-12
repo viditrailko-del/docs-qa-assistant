@@ -2,11 +2,18 @@ import uuid
 from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Computed, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # bge-small-en-v1.5 returns 384 numbers per text. A different model needs a migration.
 EMBED_DIM = 384
+
+# Heading words weigh less (B) than the passage's own words (A) in keyword ranking.
+SEARCH_TSV_SQL = (
+    "setweight(to_tsvector('english', coalesce(heading_path, '')), 'B') || "
+    "setweight(to_tsvector('english', coalesce(text, '')), 'A')"
+)
 
 
 class Base(DeclarativeBase):
@@ -35,7 +42,10 @@ class Chunk(Base):
     """A passage of a document: the unit we search, cite and verify quotes against."""
 
     __tablename__ = "chunks"
-    __table_args__ = (UniqueConstraint("document_id", "seq"),)
+    __table_args__ = (
+        UniqueConstraint("document_id", "seq"),
+        Index("ix_chunks_search_tsv", "search_tsv", postgresql_using="gin"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     document_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
@@ -45,5 +55,10 @@ class Chunk(Base):
     char_count: Mapped[int] = mapped_column(Integer)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBED_DIM))
     embed_model: Mapped[str] = mapped_column(String(200))  # vectors from different models don't mix
+    # Keyword index for full-text search, computed by Postgres from heading + text (never written
+    # by us). 'english' stems words: "reimbursed" matches "reimbursable".
+    search_tsv: Mapped[str] = mapped_column(
+        TSVECTOR, Computed(SEARCH_TSV_SQL, persisted=True), deferred=True
+    )
 
     document: Mapped[Document] = relationship(back_populates="chunks")

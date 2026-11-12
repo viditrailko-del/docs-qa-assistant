@@ -137,6 +137,24 @@ FastAPI + Postgres/pgvector + Alembic. `POST /documents` with idempotent hashing
 ### Phase 2: retrieval + retrieval eval (no LLM, free)
 Vector search, then hybrid (vectors + full-text, e.g. reciprocal rank fusion). Measure recall@k / MRR against the question set. Tune chunk size/overlap here.
 
+**Done (2026-11-12).**
+- `app/retrieval/search.py`: `vector` (cosine via pgvector), `keyword` (Postgres full-text on generated column `chunks.search_tsv`, migration `0002`, GIN index; heading weight B, text A; the question's terms are OR-ed because `plainto_tsquery` ANDs them), `hybrid` (weighted RRF, k=60, pool 50 per method). Every `Hit` carries `similarity` (cosine) whatever the method: it's the refusal signal.
+- `GET /search?q=&k=&method=&keyword_weight=`: retrieval alone, for inspection.
+- Eval: `docker compose run --rm -T api uv run --frozen python -m eval.retrieval [--methods vector,hybrid:0.3] [--show q30,u02]`. Free, ~1 min. Relevant chunks = chunks containing a label quote (same normalization as the tests). Metrics in `eval/metrics.py` (pure, tested): hit@k (any evidence in top k), full@k (all evidence: matters for multi/conflict), MRR, traps (a near-miss ranked above the evidence), refusal signal. Results in gitignored `eval/results/retrieval/`.
+- **Result (bge-small, 1200-char chunks, 53 answerable questions):**
+
+  | method | hit@1 | hit@5 | hit@10 | full@5 | MRR | missed@10 |
+  |---|---|---|---|---|---|---|
+  | vector | 0.62 | **0.92** | 0.96 | 0.83 | **0.75** | q30, q53 |
+  | keyword | 0.40 | 0.68 | 0.77 | 0.58 | 0.52 | 12 |
+  | hybrid (kw weight 1) | 0.57 | 0.81 | 0.87 | 0.72 | 0.67 | 7 |
+  | hybrid (kw weight 0.3) | 0.64 | 0.89 | 0.91 | 0.81 | 0.74 | 5 |
+
+  **Default = vector.** Hybrid never beat it at any keyword weight. Likely cause: `ts_rank` has no IDF, so common words ("team member", "GitLab") weigh as much as rare ones ("USERRA", "walking pads"). Also `pads/treadmills` is tokenized as a file path, not two words. Real BM25 (with IDF) is the open experiment before giving up on keywords.
+- Weak spots (vector): **q30** (parental leave length): the company-wide "16 weeks" chunk is not in the top 10; country pages (Canada, NZ, Korea... similarity ~0.90-0.93) win. **q53** (gym/HealthKick) missed. Tricky questions hit@5 only 0.60; full@5 for conflict 0.33 (both sides of a contradiction rarely both retrieved) and multi 0.62.
+- Refusal signal (vector top similarity): answerable min 0.693 / median 0.776; unanswerable median 0.705 / max 0.836. Best threshold 0.693 refuses 4/8 unanswerable, 0/53 answerable wrongly, but it's fit on the same 61 questions and sits exactly at the answerable minimum: too fragile to use alone. Phase 4 needs more than a similarity cutoff.
+- Unanswerable questions retrieve their decoys (u01 RSU→option vesting, u07 timekeeping, u08 software list): the LLM step must resist them.
+
 ### Phase 3: answer generation
 Gemini structured output: `answer` + `claims[{chunk_id, quote}]` or `refused` + reason. Raw response saved, validation retry, versioned prompts, tokens/cost/latency recorded per call.
 
@@ -164,7 +182,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 |---|---|---|
 | 0 | Corpus snapshot + labeled question set | done (60 pages, 61 verified questions) |
 | 1 | Skeleton + ingestion (chunks, embeddings, pgvector) | done (60 docs, 1407 chunks, 24 tests) |
-| 2 | Hybrid retrieval + retrieval eval | not started |
+| 2 | Hybrid retrieval + retrieval eval | done (vector default: hit@5 0.92, MRR 0.75; hybrid measured, lost) |
 | 3 | Gemini answers with cited quotes | not started |
 | 4 | Verification checks + refusal policy | not started |
 | 5 | Eval harness (confident-wrong answers headline) | not started |
