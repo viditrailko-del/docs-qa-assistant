@@ -1,0 +1,5 @@
+# Source files: LF in the repo and in the working tree (Docker/Linux reads them too).
+* text=auto eol=lf
+
+# Corpus: stored byte-for-byte. Line-ending conversion would change the sha256 in manifest.json.
+corpus/** -text

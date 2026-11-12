@@ -1,0 +1,366 @@
+{
+  "source": "https://gitlab.com/gitlab-com/content-sites/handbook",
+  "commit": "7466a0c8323e9a5d31afc51bfa3c858055d05324",
+  "files": [
+    {
+      "path": "communication/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/",
+      "bytes": 156873,
+      "sha256": "2328f8def18142113493e237e149148371b435930e95f2f5d4b916a197f7ea99"
+    },
+    {
+      "path": "communication/ask-me-anything.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/ask-me-anything",
+      "bytes": 12345,
+      "sha256": "c86eba89eaa0c5e0b1ca00b33cf3e8f0a09071bda29527611a0e90b0aca1d369"
+    },
+    {
+      "path": "communication/chat.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/chat",
+      "bytes": 31658,
+      "sha256": "b2130710fc84f2295955b19548c28d007dec147bb01063ad1687a593cb246eb6"
+    },
+    {
+      "path": "communication/confidentiality-levels.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/confidentiality-levels",
+      "bytes": 13342,
+      "sha256": "36adc4263bc31e971661b94e4a1bc0f26d4d742982491a3bf250dabc89596660"
+    },
+    {
+      "path": "communication/deep-dives.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/deep-dives",
+      "bytes": 4168,
+      "sha256": "50ef328f6dd3b345aebc59751e83c6cfa31c0ab124d62606f0174d8999d4a211"
+    },
+    {
+      "path": "communication/power-of-the-pause.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/power-of-the-pause",
+      "bytes": 2795,
+      "sha256": "90f8d4ab6e238af0b77c6f8609ce11d98fe8abbe72afc61b8e8871e2e0354681"
+    },
+    {
+      "path": "communication/sync-vs-async-culture.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/sync-vs-async-culture",
+      "bytes": 6372,
+      "sha256": "228d8b9f05f24791373468dabb01adf13904d87750e8b48608fcacc93e6fc0fe"
+    },
+    {
+      "path": "communication/top-misused-terms.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/top-misused-terms",
+      "bytes": 462,
+      "sha256": "0b4f64a14cfb753bbb284f2700054cea4eced4d215429d939993239c31289d20"
+    },
+    {
+      "path": "communication/zoom/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/zoom/",
+      "bytes": 2123,
+      "sha256": "05d833057c8401efda4a697c38c059f8cb14fa5a84af6e4c5e489a4aff346672"
+    },
+    {
+      "path": "communication/zoom/webinars.md",
+      "url": "https://handbook.gitlab.com/handbook/communication/zoom/webinars",
+      "bytes": 4835,
+      "sha256": "477e26ecbd7655533ecc82aadec1ff194aff527fdcfeea7831e1bd85bb4ca01a"
+    },
+    {
+      "path": "finance/accounts-payable/corp-credit-cards.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/accounts-payable/corp-credit-cards",
+      "bytes": 13309,
+      "sha256": "75762317152d50171d371ecd640b4a512fc1729f8478cf572193bd011e4d6e2f"
+    },
+    {
+      "path": "finance/authorization-matrix.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/authorization-matrix",
+      "bytes": 155,
+      "sha256": "55772bbf00f2e6e12735313008dd7be439fd7b4bc903a21d43941a4e73145cf9"
+    },
+    {
+      "path": "finance/expenses.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/expenses",
+      "bytes": 66764,
+      "sha256": "e0e3a8f819050715c7873dbfefba5a14ae0b8b4339db293318e9d6f3cbfde5d0"
+    },
+    {
+      "path": "finance/payroll.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/payroll",
+      "bytes": 134,
+      "sha256": "330022e763ca0f9bc5a49a46ef51c81143114953ed346501333af3984ba2a8ba"
+    },
+    {
+      "path": "finance/procurement/charitable-contributions.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/procurement/charitable-contributions",
+      "bytes": 1062,
+      "sha256": "f05be1dd807fca261184b71bc5e0692cb5f68a9956a6eeb0134c122b1a07870f"
+    },
+    {
+      "path": "finance/procurement/individual-use-software.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/procurement/individual-use-software",
+      "bytes": 3804,
+      "sha256": "a8e5565724f599e12390f7c397f3748bcbfee99093be8aab4924a47de4f6ca40"
+    },
+    {
+      "path": "finance/procurement/office-equipment-supplies.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/procurement/office-equipment-supplies",
+      "bytes": 536,
+      "sha256": "9c3069e18cf75db40cdf6a0fb0b402118e6ce7ac1438a94596458b75785ed02a"
+    },
+    {
+      "path": "finance/spending-company-money.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/spending-company-money",
+      "bytes": 3777,
+      "sha256": "d08dca36457b978e0206e65a390fe827c2fd14bbdcfd1913c6e662d1b6c85846"
+    },
+    {
+      "path": "finance/timekeeping/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/timekeeping/",
+      "bytes": 146,
+      "sha256": "70fdaad1bb5081f34347853d1e4fcb4abef7d1565b9a032706beb3bb3bb36e11"
+    },
+    {
+      "path": "finance/travel/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/travel/",
+      "bytes": 9287,
+      "sha256": "a8f08c5089d8bb5215a3b94fbf05804a634e23bffaac12d354addbcb0ecfa5cd"
+    },
+    {
+      "path": "finance/travel/sponsored.md",
+      "url": "https://handbook.gitlab.com/handbook/finance/travel/sponsored",
+      "bytes": 5467,
+      "sha256": "30bb69ce49613603df4b4f0479eb36dcf5d1a7f50a8b381e50c8f9e255383ce4"
+    },
+    {
+      "path": "hiring/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/hiring/",
+      "bytes": 4117,
+      "sha256": "2fdec9527245ad7d4c3dd1871e57925f4ac928a20ae03ad4fbcf402a7ea7d60f"
+    },
+    {
+      "path": "hiring/candidate-faq/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/hiring/candidate-faq/",
+      "bytes": 18068,
+      "sha256": "967fd195391b1e8b46ac57828c7dfddd4b562f4efe231a5c731734b2413a456a"
+    },
+    {
+      "path": "hiring/referral-operations.md",
+      "url": "https://handbook.gitlab.com/handbook/hiring/referral-operations",
+      "bytes": 7050,
+      "sha256": "f2bf0f3e1b79690c2ea019cc88ab07c9716d2dc5c15a74f9805004a8166c2bbe"
+    },
+    {
+      "path": "hiring/referral-process.md",
+      "url": "https://handbook.gitlab.com/handbook/hiring/referral-process",
+      "bytes": 12863,
+      "sha256": "b0e3ed9e6bc85fd70924fdafc184510e27b0782bb3547c9dd11a1e1395f25d4d"
+    },
+    {
+      "path": "hiring/talent-acquisition-framework/internal-hiring-process.md",
+      "url": "https://handbook.gitlab.com/handbook/hiring/talent-acquisition-framework/internal-hiring-process",
+      "bytes": 17653,
+      "sha256": "251a69883199f96bfa1b2fab9b438c06d81f9925ac5be1caf03ece1cbef987d1"
+    },
+    {
+      "path": "people-policies/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/",
+      "bytes": 40354,
+      "sha256": "a8e0f6065c26f819948fca1d95c8a14ab2cbc8aeb330fc114e1f5e750951658b"
+    },
+    {
+      "path": "people-policies/france-sas/remote-work-charter.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/france-sas/remote-work-charter",
+      "bytes": 25733,
+      "sha256": "527bb04d4a2c4a59821ae8d52f4e58101c9006adccce4d23c21d4af0ea079f71"
+    },
+    {
+      "path": "people-policies/france-sas/right-to-disconnect-charter.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/france-sas/right-to-disconnect-charter",
+      "bytes": 32695,
+      "sha256": "be3dc2b700a3e39c3eee76d144f84d8b16f7088f7095152bf4a7b521d1826da4"
+    },
+    {
+      "path": "people-policies/inc-usa.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/inc-usa",
+      "bytes": 33591,
+      "sha256": "7837e660eee741cf8eb37bbf5b08303c9c2d2f4dd48e5d7bc9f55fa046774ca4"
+    },
+    {
+      "path": "people-policies/india-ltd/india-eop-policy.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/india-ltd/india-eop-policy",
+      "bytes": 12015,
+      "sha256": "9dcb8f75f5eed8f05fca569559a1e2ba81d55f87a10e876c4ca1ee741141e48e"
+    },
+    {
+      "path": "people-policies/india-ltd/india-sexual-harassment-policy.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/india-ltd/india-sexual-harassment-policy",
+      "bytes": 15719,
+      "sha256": "53305372d0a93429c4ca39cb6c7c3182a2225e214e8990775bf7a0e478637c3a"
+    },
+    {
+      "path": "people-policies/ireland-ltd/right-to-disconnect-policy.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/ireland-ltd/right-to-disconnect-policy",
+      "bytes": 11977,
+      "sha256": "18ef1e4690fb12da302ae601c79d1ec47bdd0e3f6abe30d8a38e4ca0f760b8fc"
+    },
+    {
+      "path": "people-policies/leave-of-absence/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/leave-of-absence/",
+      "bytes": 3417,
+      "sha256": "3557f25dde83ff1710840d6f22edd5bcdf8c6ecb707392abaac74b59c282bac1"
+    },
+    {
+      "path": "people-policies/leave-of-absence/us.md",
+      "url": "https://handbook.gitlab.com/handbook/people-policies/leave-of-absence/us",
+      "bytes": 38925,
+      "sha256": "98c21d0534985da06487151abb8771b45696bec4a217cfb0cf29d178ddcf7f98"
+    },
+    {
+      "path": "total-rewards/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/",
+      "bytes": 2081,
+      "sha256": "aeacc08a2b1bb2052c1be65ad5c1b4d335e57c4101083e302fadb7a7b5fc2374"
+    },
+    {
+      "path": "total-rewards/benefits/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/",
+      "bytes": 6174,
+      "sha256": "6d9ea2fc36bb65f5d84e993cd43c462366510b56d59810a4e855313ab67cf0ed"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/",
+      "bytes": 27375,
+      "sha256": "bad1cd52632a91be8c8a999586154d20b4071032ad3c91f811e748013c9d82be"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/bv-benefits-belgium.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/bv-benefits-belgium",
+      "bytes": 9489,
+      "sha256": "7e14fd4925393d3e7f11ab139f582226e49aaff9ce6969d5e3dea3f42d27dda5"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/bv-benefits-netherlands.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/bv-benefits-netherlands",
+      "bytes": 19516,
+      "sha256": "9231ec5e2ce58cd9870b9908e58a5ffbc5c55bd07045a10fcef839362c198222"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/canada-corp-benefits.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/canada-corp-benefits",
+      "bytes": 12511,
+      "sha256": "9c764e326f3ffde484e4b9d303473b16403d0c2d92d3f07df79403ff7a103b36"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/financial-wellness.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/financial-wellness",
+      "bytes": 7234,
+      "sha256": "77f8462d41ca23b44e322be3d5451e146eeaf71fc91faca9dfa754675de5e293"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/france-sas.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/france-sas",
+      "bytes": 16450,
+      "sha256": "cb95f4989f1bda4f6a49f72000638461906fd344092b590f0185b40823d32437"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/gitlab-gk.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/gitlab-gk",
+      "bytes": 7961,
+      "sha256": "3ec22370971dd45a00861347936f52670a6bb3847ddb8dfa74bf2e2114b9963f"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/gitlab-ireland-ltd.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/gitlab-ireland-ltd",
+      "bytes": 18068,
+      "sha256": "df058eaa012bfa3e08683e44b7d3117cb25b404d444435be1e5e13c68901acea"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/global-expansion.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/global-expansion",
+      "bytes": 44635,
+      "sha256": "4c1b3481e5d1487f976c2868ee2db50630410d05162b4320b37106956463a69f"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/inc-benefits-us/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/inc-benefits-us/",
+      "bytes": 42442,
+      "sha256": "ae5e2cdfd355ac9aa7f05a0e7b361262f0954f6ac176fada5476a557933ce5cc"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/korea-ltd-benefits.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/korea-ltd-benefits",
+      "bytes": 13552,
+      "sha256": "ee57c7fe30cf3c8831844b1edc0f91375bb502992a654e4e3ec6c2eede1ed65f"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/ltd-benefits-uk.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/ltd-benefits-uk",
+      "bytes": 36060,
+      "sha256": "f5ace28cfafbac3faa2e62e86e65ebfe4002aa20509ef5ad28fe359c8e205cac"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/papaya-global-benefits.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/papaya-global-benefits",
+      "bytes": 3781,
+      "sha256": "62d0700d79ada3e28d84c0e168d83737e04983953c526bcbfa76d0a5089201f6"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/pty-benefits-australia.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/pty-benefits-australia",
+      "bytes": 28742,
+      "sha256": "b7e3d6e97b18e29928d41d2e17806e1e993fca2fc3752ab8ecc1541ea0504360"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/pty-benefits-new-zealand.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/pty-benefits-new-zealand",
+      "bytes": 23292,
+      "sha256": "be31201b40eb09e3e56fff2cfc224a2014919a1683651174ed6f86e337134041"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/remote-com.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/remote-com",
+      "bytes": 36608,
+      "sha256": "bb6148f0903d9c569ac19d142d4d5f53a560a91c0ac0d99b564ab3cd1f24c2cd"
+    },
+    {
+      "path": "total-rewards/benefits/general-and-entity-benefits/singapore-pte-ltd.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/general-and-entity-benefits/singapore-pte-ltd",
+      "bytes": 11511,
+      "sha256": "3b370ff5ce5b8310625ded204e839934d78b60d4cabef9de611141a6e3f3a701"
+    },
+    {
+      "path": "total-rewards/benefits/modern-health.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/modern-health",
+      "bytes": 7148,
+      "sha256": "8e9adb42583835d35d2de252eb18c0af7cba5f62535affd3756da1784dade8c2"
+    },
+    {
+      "path": "total-rewards/benefits/parental-leave-toolkit.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/benefits/parental-leave-toolkit",
+      "bytes": 9457,
+      "sha256": "54128296e0dd27846a2ceeb105c8989977497e3de1c632585495ed66f84321cd"
+    },
+    {
+      "path": "total-rewards/compensation/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/compensation/",
+      "bytes": 12841,
+      "sha256": "89c2f6efc52d7f7647dcc7e2840dea27a0698b55e2f17609845ff8f769cafe15"
+    },
+    {
+      "path": "total-rewards/compensation/compensation-review-cycle/_index.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/compensation/compensation-review-cycle/",
+      "bytes": 4288,
+      "sha256": "37158730165aace7d9a7a40fac7597d238cd7db7c19d4edc4f905d95cac99787"
+    },
+    {
+      "path": "total-rewards/incentives.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/incentives",
+      "bytes": 39956,
+      "sha256": "1cbff3128121cff1474ee88a5e575941e59e7e17adc8b7919f41cdf0ceda9ca1"
+    },
+    {
+      "path": "total-rewards/stock-options.md",
+      "url": "https://handbook.gitlab.com/handbook/total-rewards/stock-options",
+      "bytes": 26950,
+      "sha256": "f71c315d069818b4c0e8bfdcc60ec45e2f80f43f5ba8f38769c9ff0224cd6856"
+    }
+  ]
+}
