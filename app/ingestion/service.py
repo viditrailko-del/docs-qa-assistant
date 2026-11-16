@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
@@ -13,6 +14,9 @@ from sqlalchemy.orm import Session
 from app.db.models import Chunk, Document
 from app.ingestion.embeddings import Embedder
 from app.ingestion.markdown import chunk_markdown, embedding_input
+from app.logging_setup import log_event
+
+log = logging.getLogger(__name__)
 
 
 class InvalidDocument(ValueError):
@@ -66,4 +70,6 @@ def ingest_document(
         if existing is None:
             raise
         return IngestResult(existing, created=False)
+    log_event(log, logging.INFO, "document_ingested", document_id=doc.id, path=path, chunks=len(doc.chunks),
+              chars=len(text), embed_model=embedder.model_name)
     return IngestResult(doc, created=True)

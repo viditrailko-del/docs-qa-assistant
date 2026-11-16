@@ -1,0 +1,45 @@
+# Runs everything exactly as it runs locally: inside the dev container, against Postgres +
+# pgvector from docker-compose. Tests never call Gemini, so no secrets are needed.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Stdlib-only: the frozen corpus and the labeled questions still agree.
+      - name: Verify corpus snapshot and question labels
+        run: |
+          python -m scripts.snapshot_corpus --verify
+          python -m scripts.check_questions
+
+      - name: Build dev image
+        run: docker compose build api
+
+      - name: Start Postgres
+        run: docker compose up -d --wait db
+
+      - name: Run tests
+        run: docker compose run --rm -T api uv run --frozen pytest -q
+
+      - name: Migrations apply and match the models
+        run: |
+          docker compose run --rm -T api uv run --frozen alembic upgrade head
+          docker compose run --rm -T api uv run --frozen alembic check
+
+      - name: Build production image
+        run: docker build -t docs-qa-api .
+
+      - name: Show Postgres logs on failure
+        if: failure()
+        run: docker compose logs db

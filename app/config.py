@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://rag:rag@localhost:5433/rag"
     max_upload_mb: int = 5
+    log_format: str = "text"  # "json" in the production image: one JSON object per line
+    log_level: str = "INFO"
 
     # Embeddings run locally (fastembed / ONNX). The model is baked into the Docker image.
     # Changing the model changes every vector: re-embed all chunks (and EMBED_DIM + a migration).

@@ -13,6 +13,7 @@ measures exactly the code the API runs.
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -29,8 +30,11 @@ from app.answering.pricing import cost_usd
 from app.checks.base import Flag, SourceText
 from app.checks.runner import run_checks
 from app.config import Settings
+from app.logging_setup import log_event
 from app.retrieval.search import Hit
 from app.schemas.answer import LLMAnswer
+
+log = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 MAX_TRANSIENT_RETRIES = 2  # per model, so up to 3 calls each
@@ -151,6 +155,8 @@ def answer_question(
         except ValidationError as e:
             attempt.error = f"validation: {e}"[:4000]
             recorder.update(attempt)
+            log_event(log, logging.WARNING, "llm_output_invalid", model=attempt.model,
+                      prompt_version=attempt.prompt_version, errors=e.error_count())
             prompt = base_prompt + RETRY_FEEDBACK.format(errors=_short_errors(e))
             continue
         outcome.answer = answer
@@ -187,6 +193,8 @@ def _call_llm(
                 attempt.error = str(e)[:4000]
                 attempt.latency_ms = e.latency_ms
                 recorder.record(attempt)
+                log_event(log, logging.WARNING, "llm_call_failed", model=model, transient=e.transient,
+                          attempt=attempt_no + 1, latency_ms=e.latency_ms, error=str(e)[:200])
                 if not e.transient:
                     break  # e.g. bad request or daily quota: same model won't fix it, try the fallback
                 if attempt_no < MAX_TRANSIENT_RETRIES:

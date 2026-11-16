@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import logging
+import time
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -10,7 +13,10 @@ from app.answering.core import Attempt, answer_question
 from app.config import Settings
 from app.db.models import Ask, LlmCall
 from app.ingestion.embeddings import Embedder
+from app.logging_setup import log_event
 from app.retrieval.search import Method, search
+
+log = logging.getLogger(__name__)
 
 
 class DbRecorder:
@@ -52,6 +58,7 @@ def ask_question(
     method: Method = Method.vector,
 ) -> Ask:
     k = k or settings.retrieval_k
+    start = time.monotonic()
     ask = Ask(question=question, status="pending", retrieval_method=method.value, k=k,
               prompt_version=settings.prompt_version)
     db.add(ask)
@@ -71,6 +78,28 @@ def ask_question(
     ask.completed_at = func.now()
     db.commit()
     db.refresh(ask)
+    _log_finished(ask, outcome, int((time.monotonic() - start) * 1000))
     return ask
+
+
+def _log_finished(ask: Ask, outcome, wall_ms: int) -> None:
+    """One event per question with everything needed to monitor quality and cost. The question
+    text is NOT logged (it may hold personal details): ask_id links to it in the database."""
+    a = outcome.attempts
+    costs = [x.cost_usd for x in a if x.cost_usd is not None]
+    used = [x.model for x in a if x.raw_response is not None and not x.error]
+    log_event(
+        log, logging.INFO, "ask_finished",
+        ask_id=ask.id, status=ask.status, retrieval_method=ask.retrieval_method, k=ask.k,
+        sources=len(outcome.sources),
+        top_similarity=round(max((s.hit.similarity for s in outcome.sources), default=0.0), 4),
+        model=used[-1] if used else None, prompt_version=ask.prompt_version,
+        llm_calls=len(a), failed_calls=sum(x.error is not None for x in a),
+        llm_latency_ms=sum(x.latency_ms or 0 for x in a), wall_ms=wall_ms,
+        input_tokens=sum(x.input_tokens or 0 for x in a),
+        output_tokens=sum((x.output_tokens or 0) + (x.thinking_tokens or 0) for x in a),
+        cost_usd=sum(costs) if costs else None,
+        flags=sorted({f.code for f in outcome.flags}),
+    )
 
 
