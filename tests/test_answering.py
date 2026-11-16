@@ -116,7 +116,7 @@ def test_daily_quota_is_not_transient():
 def test_prompt_labels_sources_and_survives_braces():
     from app.answering.core import label_sources
 
-    p = build_prompt("v1", "What about {weird} braces?", label_sources([hit(1), hit(2, "Use {{% x %}} {0}")]))
+    p = build_prompt("v2", "What about {weird} braces?", label_sources([hit(1), hit(2, "Use {{% x %}} {0}")]))
     assert "[S1] Expenses\nSection: Expenses > Books" in p and "[S2]" in p
     assert "Use {{% x %}} {0}" in p and p.rstrip().endswith("Question: What about {weird} braces?")
     assert "{sources}" not in p
@@ -225,3 +225,38 @@ def test_ask_validation_and_404(client):
     assert client.post("/ask", json={"question": "x"}).status_code == 422
     assert client.post("/ask", json={"question": "books?", "k": 0}).status_code == 422
     assert client.get(f"/ask/{uuid.uuid4()}").status_code == 404
+
+
+# --- the real Gemini client's error mapping (no network: the SDK call is replaced) ----------
+
+def _gemini_raising(exc):
+    from app.answering.client import GeminiClient
+
+    client = GeminiClient("fake-key")
+
+    class Models:
+        def generate_content(self, **kwargs):
+            raise exc
+
+    client._client = type("C", (), {"models": Models()})()
+    return client
+
+
+@pytest.mark.parametrize("exc", [
+    __import__("httpx").ConnectError("[Errno -2] Name or service not known"),  # DNS outage (eval, 2026-11-16)
+    __import__("httpx").ReadError("connection reset"),
+    __import__("httpx").ReadTimeout("slow"),
+])
+def test_network_errors_become_transient_llm_errors(exc):
+    with pytest.raises(LLMError) as info:
+        _gemini_raising(exc).generate(prompt="p", schema={}, model="m")
+    assert info.value.transient
+
+
+def test_network_outage_ends_failed_not_crash(client, ingested):  # noqa: F811
+    from app.answering.client import get_llm
+    from app.main import app
+
+    app.dependency_overrides[get_llm] = lambda: _gemini_raising(__import__("httpx").ConnectError("dns"))
+    r = client.post("/ask", json={"question": "How much can I spend on books?"})
+    assert r.status_code == 200 and r.json()["status"] == "failed"

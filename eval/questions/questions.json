@@ -1057,18 +1057,27 @@
       "verified_at": "2026-11-12"
     },
     {
-      "id": "u01",
-      "type": "unanswerable",
-      "expect": "refuse",
+      "id": "q54",
+      "renamed_from": "u01",
+      "type": "tricky",
+      "expect": "answer",
       "question": "What is the vesting schedule for new-hire RSU grants?",
-      "answer": "The handbook doesn't say: it deliberately leaves out equity dates and points to an internal slide deck. (The four-year/one-year-cliff schedule is for stock options, and the three-year quarterly schedule is only for promotion and refresh RSUs.)",
-      "key_facts": [],
-      "sources": [],
-      "near_miss": [
+      "answer": "Only in general terms: RSUs are generally expected to vest over two to four years, ratably on a combination of bi-annual and quarterly basis. The handbook leaves out specific equity dates and points to a slide deck for grant cadence and vesting. (The four-year/one-year-cliff schedule is for stock options, and the three-year quarterly schedule is only for promotion and refresh RSUs.)",
+      "key_facts": [
+        "two to four years",
+        "slide deck"
+      ],
+      "sources": [
         {
           "path": "total-rewards/stock-options.md",
-          "quote": "we do not add specific dates to the handbook regarding equity."
+          "quote": "are expected to vest over two to four years ratably on a combination of bi-annual and quarterly basis."
         },
+        {
+          "path": "total-rewards/stock-options.md",
+          "quote": "For more information on grant cadence & vesting, please see the following"
+        }
+      ],
+      "near_miss": [
         {
           "path": "total-rewards/stock-options.md",
           "quote": "our standard practice is to issue options with a four year vesting schedule"
@@ -1078,9 +1087,9 @@
           "quote": "Promotion and Refresh Grants do not require a cliff, begin vesting quarterly for three-year vest."
         }
       ],
-      "notes": "Main trap: answering with the stock option schedule.",
+      "notes": "Was u01 (unanswerable). The 2026-11-16 eval (k=12) answered it from a general RSU passage the label had missed, so it was relabeled. Good answer: generally 2-4 years, specifics in the slide deck. Must not give the stock option or promotion schedule.",
       "verified_by": "Vidit",
-      "verified_at": "2026-11-12"
+      "verified_at": "2026-11-16"
     },
     {
       "id": "u02",

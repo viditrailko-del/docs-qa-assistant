@@ -21,9 +21,10 @@ class Settings(BaseSettings):
     # Chunking: ~1200 chars is ~250-300 tokens, a paragraph or two of policy text.
     chunk_max_chars: int = 1200
 
-    # Retrieval: how many chunks the LLM sees. Eval: hit@5 0.92 vs hit@10 0.96, and full@10
-    # (all evidence present, matters for conflicts) 0.91 vs full@5 0.83. 8 is the compromise.
-    retrieval_k: int = 8
+    # Retrieval: how many chunks the LLM sees. Answer eval (2026-11-16): 4 of the 6 confident-wrong
+    # answers at k=8 lacked evidence ranked 9-11th. All evidence shown (full@k, 53 questions):
+    # k=8 46, k=10 48, k=12 49, k=20 still 49. k=12: confident-wrong 5 -> 4, ~+20% cost.
+    retrieval_k: int = 12
     # > 0 adds a weak_retrieval warning below this cosine similarity. Off: no threshold separated
     # answerable from unanswerable questions in the Phase 2 eval without overfitting.
     min_similarity: float = 0.0
@@ -34,7 +35,9 @@ class Settings(BaseSettings):
     gemini_fallback_model: str = "gemini-3.5-flash-lite"
     gemini_thinking_level: str = "low"  # higher levels were 25-50x slower in the invoice project
     gemini_timeout_s: int = 60
-    prompt_version: str = "v1"
+    # v2 (eval 2026-11-16, k=12): confident-wrong 4 -> 2; refuses general questions answered only
+    # by country pages (u07 fixed, q30 now an over-refusal), states conditions and pointers.
+    prompt_version: str = "v2"
     llm_retry_backoff_s: float = 2.0  # waits 2s, then 4s, between retries
 
 

@@ -132,11 +132,28 @@ def test_general_claim_with_a_company_wide_source_passes():
     assert check_scope("How many weeks of parental leave?", a, [CANADA, UK, GLOBAL]) == []
 
 
-def test_country_named_in_question_or_statement_passes():
+def test_country_named_in_question_passes():
     a = answer(("Parental leave is 16 weeks.", [("S1", "16 weeks")]))
     assert check_scope("How much parental leave in Canada?", a, [CANADA]) == []
-    b = answer(("In Canada, parental leave is topped up to 16 weeks.", [("S1", "16 weeks")]))
-    assert check_scope("How much parental leave?", b, [CANADA]) == []
+
+
+def test_general_question_answered_only_with_named_country_rules_is_flagged():
+    """Eval u07: every sentence honestly names France, but the question was general."""
+    b = answer(("In Canada, parental leave is topped up to 16 weeks.", [("S1", "16 weeks")]),
+               ("In the UK, it is 16 weeks at full salary.", [("S2", "up to 16 weeks at 100% salary")]))
+    [f] = check_scope("How much parental leave?", b, [CANADA, UK])
+    assert f.statement is None and "whole answer" in f.reason and "Canada, UK" in f.reason
+
+
+def test_named_country_detail_next_to_a_general_source_passes():
+    c = answer(("Parental leave is 16 weeks.", [("S3", "16 weeks of paid leave")]),
+               ("In Canada, it is paid by topping up government benefits.", [("S1", "16 weeks")]))
+    assert check_scope("How much parental leave?", c, [CANADA, GLOBAL]) == []
+
+
+def test_one_flag_per_answer_not_two():
+    a = answer(("Parental leave is 16 weeks.", [("S1", "16 weeks")]))
+    assert len(check_scope("How much parental leave?", a, [CANADA])) == 1  # statement-level only
 
 
 def test_scope_from_path_when_title_is_generic():

@@ -52,7 +52,7 @@ def test_one_summary_event_per_question(client, ingested, caplog):  # noqa: F811
     [event] = _events(caplog, "ask_finished")
     assert event["ask_id"] == uuid.UUID(body["id"]) and event["status"] == "answered"
     assert event["llm_calls"] == 1 and event["failed_calls"] == 0
-    assert event["model"] == "gemini-3.5-flash" and event["prompt_version"] == "v1"
+    assert event["model"] == "gemini-3.5-flash" and event["prompt_version"] == "v2"
     assert event["input_tokens"] == 1000 and event["output_tokens"] == 100
     assert event["cost_usd"] == Decimal("0.002250") and event["flags"] == []
     assert "question" not in event  # may contain personal details: only the ask_id is logged

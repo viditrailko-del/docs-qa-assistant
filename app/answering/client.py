@@ -79,6 +79,11 @@ class GeminiClient:
                            latency_ms=_ms_since(start)) from e
         except httpx.TimeoutException as e:
             raise LLMError("timeout", transient=True, latency_ms=_ms_since(start)) from e
+        except httpx.TransportError as e:
+            # Network down, DNS failure, connection reset (found by the eval: a DNS outage
+            # crashed 13 questions, and would have been an HTTP 500 in the API). Retryable.
+            raise LLMError(f"network: {type(e).__name__}: {e}"[:500], transient=True,
+                           latency_ms=_ms_since(start)) from e
 
         usage = resp.usage_metadata
         return LLMResponse(

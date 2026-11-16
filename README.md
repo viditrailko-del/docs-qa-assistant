@@ -27,7 +27,7 @@ flowchart LR
     C --> E[Local embeddings<br/>bge-small, 384 dims]
     E --> PG[(Postgres + pgvector)]
 
-    Q[POST /ask] --> R[Vector search, top 8 chunks]
+    Q[POST /ask] --> R[Vector search, top 12 chunks]
     PG --> R
     R -->|no sources| X[refused, no LLM call]
     R --> L[Gemini structured output<br/>statements + exact quotes]
@@ -48,7 +48,7 @@ flowchart LR
   | `unknown_source` | error | cites a source the model wasn't shown |
   | `quote_not_in_source` | error | the quote isn't in the cited chunk (only quotes, dashes, case, spacing, `**` are forgiven) |
   | `number_unsupported` | error | a number in a statement appears in none of the sources *that statement* cites ($1,500 = 1500) |
-  | `scope_mismatch` | warning | a general question answered only from country/entity-specific pages |
+  | `scope_mismatch` | warning | a general question answered only from country/entity-specific pages (per statement, and for the whole answer) |
   | `weak_retrieval` | warning | opt-in similarity floor (off: no threshold separated the data) |
 
 - **Refusing is a correct answer.** No retrieved sources → refused without an LLM call; the
@@ -62,10 +62,10 @@ flowchart LR
 ## Eval results
 
 61 questions written from the documents and verified by hand: 37 simple, 8 multi-passage,
-5 tricky (decoy passages), 3 where the documents contradict themselves, 8 unanswerable.
+6 tricky (decoy passages), 3 where the documents contradict themselves, 7 unanswerable.
 Each has key facts and the exact source quotes.
 
-**Retrieval** (no LLM, free; relevant = chunk containing a label quote, 53 answerable questions):
+**Retrieval** (no LLM, free; relevant = chunk containing a label quote):
 
 | method | hit@1 | hit@5 | hit@10 | MRR |
 |---|---|---|---|---|
@@ -73,38 +73,54 @@ Each has key facts and the exact source quotes.
 | keyword (Postgres full-text) | 0.40 | 0.68 | 0.77 | 0.52 |
 | hybrid RRF, keyword weight 0.3 | 0.64 | 0.89 | 0.91 | 0.74 |
 
-**Answers** (all 61 questions, `gemini-3.5-flash-lite`, prompt v1, k=8, run 2026-11-16;
-verdicts by key-fact match, then reviewed by hand):
+**Answers**, all 61 questions on `gemini-3.5-flash-lite`, each change measured on its own.
+Verdicts by key-fact match, every doubtful one reviewed by hand; all rows scored against the
+same (final) labels:
 
-| metric | value |
-|---|---|
-| **confident-wrong answers** (wrong or incomplete, no flag) | **6 / 61 (10%)** |
-| answerable questions answered correctly | 89% (47 / 53) |
-| unanswerable questions correctly refused | 7 / 8 |
-| over-refusals (answerable but refused) | 1 / 53 |
-| quotes found in the cited source | 99% of 106 |
-| answers citing the labeled evidence | 96% |
-| wrong answers caught by a check | **0 / 6** |
-| cost / median latency per question | $0.0016 / 2.3 s (0 failures) |
+| | confident-wrong | answerable correct | over-refusals | unanswerable refused | cost / question |
+|---|---|---|---|---|---|
+| start: prompt v1, top 8 chunks | 6 (10%) | 87% | 2 | 6 / 7 | $0.0016 |
+| + stricter scope check (re-score, no new calls) | 5 (8%) | 87% | 2 | 6 / 7 | $0.0016 |
+| + top 12 chunks | 4 (7%) | 93% | 1 | 6 / 7 | $0.0019 |
+| **+ prompt v2 (current default)** | **2 (3%)** | **93%** | 2 | **7 / 7** | $0.0022 |
 
-The honest headline: **the checks caught none of the wrong answers.** No answer invented a
-quote or a number. Every wrong answer was an *omission* (one side of a contradiction, a
-missing condition) or a *scope* error, which quote-level checks can't see. That is the
-next thing to fix, and the eval now measures it.
+*Confident-wrong* = a wrong or incomplete answer shown with no warning: the failure that
+matters most. In the final run, 98% of 108 quotes are found word-for-word in the cited
+source, every answer cites the labeled evidence, and median latency is 5 s.
+
+What the numbers taught:
+
+- **No answer invented a quote or a number.** The wrong answers were omissions, wrong-scope
+  answers, and above all **missing evidence**: 4 of the first 6 failures happened because the
+  passage that answers the question was ranked 9th-11th and the model only saw the top 8. The
+  fix was retrieval, not a smarter check.
+- **The checks catch fabrication, not omission.** Quote and number checks flagged 0 of the
+  original wrong answers, because every quote was real. They stay (they're what makes a fake
+  citation impossible to pass off as checked), and the eval is what measures the rest.
+- **A safer prompt has a price.** v2 refuses general questions that only country-specific
+  pages answer. That fixed a confident-wrong answer (u07) and turned q30 into a refusal: its
+  company-wide passage is never retrieved, so the model now says it only sees country pages
+  instead of generalizing from them. A refusal is the safe way to be wrong.
+
+Still wrong: **q24** omits that the referral bonus is paid after 3 months; **q27** reports
+one of two conflicting referral rules because the other passage ranks 23rd.
 
 ## Findings → fixes
 
-| finding (how it was found) | fix | status |
+| finding (how it was found) | fix | result |
 |---|---|---|
-| Hybrid search never beat plain vector search; Postgres `ts_rank` has no IDF, so "team" weighs as much as "USERRA" (retrieval eval) | vector is the default; real BM25 is the open experiment | done / open |
-| No similarity threshold separates answerable from unanswerable questions without overfitting (retrieval eval) | refusal is the model's job, checked by the eval; threshold is opt-in only | done |
-| Gemini's response schema rejects `pattern` / `minItems` (Phase 3) | rules live in Pydantic validators; a test asserts no unsupported keyword leaks into the schema | done |
-| "How many weeks of parental leave?" answered "16" from Canada/UK pages, not the company-wide policy (smoke test) | `scope_mismatch` check; it flags this answer in the full eval | done |
-| Key-fact scoring missed "complying" vs "comply", "five" vs "5" (full eval review) | matcher handles inflections and number words; tests added | done |
-| Conflicting documents (q23 travel insurance 180 vs 365 days, q27 referral credit): both passages retrieved, only one side answered, `sources_disagree` false | candidate check: two cited/retrieved sources give different values for the asked thing | open |
-| Incomplete answers: q24 omits "paid after 3 months"; q47 says the $1,000 amount isn't in the sources although it was | prompt v2 candidate (answer every part of the question; re-read sources before saying something is missing) | open |
-| q42 (USERRA military leave, 5 years): the passage was never retrieved, the answer was vague | retrieval: BM25 / keyword boost for rare terms | open |
-| u07 (time tracking, should refuse): answered with France-only rules; `scope_mismatch` stays silent because the answer names France | candidate: warn when a general question is answered only from one entity's pages, even if the answer says so | open |
+| Hybrid search never beat plain vector search; Postgres `ts_rank` has no IDF (retrieval eval) | vector is the default | done |
+| No similarity threshold separates answerable from unanswerable questions without overfitting (retrieval eval) | refusing is the model's job, measured by the eval; threshold is opt-in | done |
+| Gemini's response schema rejects `pattern` / `minItems` (Phase 3) | rules in Pydantic validators; a test keeps unsupported keywords out of the schema | done |
+| "16 weeks of parental leave" generalized from Canada/UK pages (smoke test) | `scope_mismatch` check | flags it; with prompt v2 the model refuses instead |
+| u07: "how do I record my hours?" answered with France-only rules, every sentence naming France, so no check fired (answer eval) | `scope_mismatch` also checks the whole answer; prompt v2 refuses such questions | caught, then refused |
+| 4 of 6 wrong answers lacked their evidence: ranked 9th-11th, the model saw 8 (answer eval) | `retrieval_k` 8 → 12 (k=20 adds nothing) | evidence shown 87% → 93%; q23, q42, q47 fixed |
+| "Rival value" check idea for conflicts: a different number of the same kind in an uncited source (answer eval) | measured on the frozen answers: fired mostly on correct answers, missed its target | **rejected** |
+| Answers left out conditions or pointers ("see the slide deck") | prompt v2 rule: include conditions, say where details live | q54 fixed, q24 not |
+| u01 "unanswerable" was answered from a real passage the label missed (answer eval) | relabeled as tricky q54 (labels follow the documents) | label fixed |
+| Key-fact scoring missed "complying" vs "comply", "five" vs "5" (answer eval review) | matcher handles inflections and number words | done |
+| A DNS outage during an eval crashed 13 questions: connection errors weren't caught, and in the API they'd have been an HTTP 500 | network errors are retryable `LLMError`s, ending `failed` | tested |
+| q27: the "first to submit" rule ranks 23rd | (BM25 / query rewriting) | open |
 
 ## Run it
 
@@ -141,6 +157,11 @@ Production image: `docker build -t docs-qa-api .` (runtime deps only, embedding 
 in and used offline, non-root, JSON logs, healthcheck). Run migrations as a separate deploy
 step. Every question logs one `ask_finished` event (status, model, calls, tokens, cost,
 latency, flags); the question text itself is not logged.
+
+## License
+
+Code: MIT ([LICENSE](LICENSE)). The handbook snapshot in `corpus/` keeps its own license and
+attribution ([corpus/LICENSE](corpus/LICENSE), [corpus/SOURCE.md](corpus/SOURCE.md)).
 
 ## Stack
 

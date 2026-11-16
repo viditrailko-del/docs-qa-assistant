@@ -173,7 +173,7 @@ What was built:
 - Prompt `app/answering/prompts/v1.txt`: sources only, exact contiguous quotes ≤ ~30 words, numbers must appear in quotes, report disagreements (`sources_disagree`), mind country/entity scope, decoys don't answer, partial answers say what's missing. Filled with `str.replace` (handbook text has braces).
 - `app/answering/core.py` `answer_question()` (no DB, reused by the eval later): no hits → refused without LLM; transient errors retried 2× with backoff, then fallback model; daily-quota 429 skips straight to fallback; invalid output → one retry with the errors; everything failing → `failed`. Every call goes to a `RunRecorder` before parsing.
 - Tables (migration `0003`): `asks` (question, status pending/answered/refused/failed, retrieval_method, k, sources JSON, answer_json, prompt_version) and `llm_calls` (raw_response, error, latency, tokens, cost_usd). `DbRecorder` commits each call immediately.
-- `POST /ask {question, k?}` → status, answer, statements with citations resolved to chunk/path/URL, refusal_reason, sources, llm_calls. LLM down / no key → HTTP 200 `failed`, never 500. `GET /ask/{id}`. Default k = `retrieval_k` = 8.
+- `POST /ask {question, k?}` → status, answer, statements with citations resolved to chunk/path/URL, refusal_reason, sources, llm_calls. LLM down / no key → HTTP 200 `failed`, never 500. `GET /ask/{id}`. Default k = `retrieval_k` (8 then, 12 since the Phase 7 eval).
 - 61 tests (fake LLM in conftest: scripted replies or `LLMError`s).
 
 ### Phase 4: verification checks (the differentiator)
@@ -205,7 +205,8 @@ What was built:
 - `--resume <run_id|latest> [--limit N]` continues with the manifest's settings; `failed` questions are retried. A daily-quota 429 stops the run cleanly (nothing saved for that question) and prints the resume command. **No fallback model by default**: one run = one model, so numbers compare. 61 questions on the main model ≈ 3-4 days of free quota; lite is ~3 s and ~$0.002/question (not billed on free tier).
 - `python -m eval.run score [run|latest]` (free, offline) re-runs the pure checks on the frozen answers, so a check change is measured without new calls. Writes `report.json` + `report.md`. Manifest records model, prompt version, k, schema sha, questions.json sha, git commit (read from `.git` since the container has no git).
 - `eval/scoring.py` (pure, `tests/test_eval_scoring.py`): outcomes `correct`, `correct_flagged`, **`confident_wrong`** (wrong/partial/answered-unanswerable with no flag: the headline), `wrong_flagged`, `over_refusal`, `correct_refusal`, `failed`. Verdict = every `key_fact` in the answer text (number words up to twelve = digits; phrase match word-bounded, hyphen-insensitive, allowing an s/ed/ing ending; or numbers by value + word prefixes); partial counts as wrong. Also: flag catch rate / precision, citation validity, "cites the labeled evidence", evidence shown (hit@k / full@k from the frozen sources), conflict `sources_disagree` rate, cost, latency.
-- Human verdicts: `<run>/judgments.json` `{"q05": {"verdict": "correct", "by": "Vidit", "note": "..."}}` overrides the auto verdict (never the label). The report's "to review" list = auto verdict not correct, or correct but the labeled evidence not cited.
+- Human verdicts: `<run>/judgments.json` `{"q05": {"verdict": "correct", "by": "Vidit", "note": "..."}}` overrides the auto verdict (never the label). The report's "to review" list = auto verdict not correct, or correct but the labeled evidence not cited. `python -m eval.run carry-judgments <old_run> [latest]` copies verdicts to a new run **only where the answer text is identical** (in practice the model rewords almost everything, so expect to re-review).
+- Old runs are always scored against the CURRENT labels. A relabeled question keeps its old id in `renamed_from` (u01 → q54) and `load_questions()` resolves it, so old raw files still score.
 - **First full run** `20261116-044507-v1-gemini-3.5-flash-lite` (all 61, lite model, prompt v1, k=8, git f085e02; 12 verdicts by Vidit in its judgments.json):
 
   | metric | value |
@@ -221,8 +222,8 @@ What was built:
 
   Findings (Phase 6 candidates):
   - **The checks caught none of the wrong answers.** Every wrong answer had real quotes and supported numbers: the failures are omissions and scope, not fabrication.
-  - **Conflicts (q23, q27):** only one side reported, `sources_disagree` false (reported on 1/3 conflicts) even though both sides were retrieved. Candidate check: two cited/retrieved sources give different values for the asked thing, answer states one.
-  - **Incomplete answers (q24 omits "after 3 months", q47 says the $1,000 amount is missing though its chunk was shown).**
+  - **Conflicts (q23, q27):** only one side reported. **Correction (Phase 7):** the other side was NOT retrieved for either (ranks 9 and 23); first written here as "both retrieved", which was wrong. Always check `evidence_full` before blaming the model.
+  - **Incomplete answers:** q24 omits "after 3 months" (model). q47's "$1,000 amount is missing" was honest: that chunk ranked 11th and wasn't shown (same correction).
   - **q42:** USERRA "5 years" chunk not retrieved (vague "maximum required by law"): retrieval miss, keyword/BM25 territory.
   - **u07:** answered a general question with France-only rules instead of refusing; `scope_mismatch` doesn't fire because the statement names France. Candidate: question names no country, every source is scoped to one → warn even if the answer names it.
   - Key-fact matcher bugs found by this run (inflections, number words) were fixed in code, not by judgments.
@@ -236,7 +237,25 @@ Structured JSON logging, prod Docker image, CI, README with real eval numbers an
 - **Dockerfile targets:** `dev` (compose) and `prod` (default: `--no-dev`, no uv, non-root uid 10001, JSON logs, HEALTHCHECK on /health, only `app/` + `alembic/`, ~810 MB). Both bake the embedding model into `/opt/models`; prod `chmod -R a+rX` it (some cache files are 0600, the non-root user got "Permission denied") and sets `HF_HUB_OFFLINE=1`. Migrations are a separate deploy step. Smoke-tested against the dev DB: healthy, /search works, JSON logs.
 - **CI** `.github/workflows/tests.yml`: corpus `--verify` + `check_questions` (plain Python), dev image, pytest, `alembic upgrade head` + `alembic check`, prod image build. No secrets needed.
 - **README.md**: architecture, checks table, retrieval + answer eval numbers, findings → fixes table (open items = the Phase 5 findings), run/eval commands. Update it when an eval run changes the numbers.
-- Next (not started): fix the open findings and measure each with `eval.run score` (checks: free) or a new lite `answer` run (prompt v2): conflict check (q23/q27), incomplete answers (q24/q47), single-entity scope for general questions (u07), BM25 for rare terms (q42).
+
+### Phase 7: fixes driven by the eval (2026-11-16)
+Each change measured on its own with full lite runs, all scored against the final labels (verdicts by Vidit in each run's judgments.json):
+
+| run | confident-wrong | answerable correct | over-refusals | unanswerable refused |
+|---|---|---|---|---|
+| `20261116-044507-v1` (v1, k=8), old checks | 6 | 87% | 2 | 6/7 |
+| same answers, stricter scope check (re-score) | 5 | 87% | 2 | 6/7 |
+| `20261116-060057-v1` (v1, k=12) | 4 | 93% | 1 | 6/7 |
+| **`20261116-062403-v2` (v2, k=12) = defaults** | **2** (q24, q27) | **93%** | 2 (q30, q53) | 7/7 |
+
+- **Diagnosis first:** the report's `evidence_full` showed 4 of 6 first-run failures had their evidence ranked 9-11th (q23, q42, q47) or 23rd (q27). full@k over 53 answerable: k=8 46, k=10 48, **k=12 49**, k=20 49. → `retrieval_k` = 12 (~+20% cost).
+- **`scope_mismatch` whole-answer rule** (`app/checks/scope.py`): question names no country and EVERY cited source in the answer is country/entity-scoped → one warning with `statement=None`, even when each sentence names its country (u07). Only added when no per-statement scope flag fired. Measured on frozen answers: caught u07, no new false alarms.
+- **Rejected after measuring:** a "rival value" conflict check (same-kind number in an uncited source with topic overlap). On frozen answers it fired mostly on correct answers (country leave pages, expense limits) and missed q23 (whose 365 wasn't retrieved). Code can't tell "two sources disagree" from "two sources are about different things" with value heuristics.
+- **Prompt v2** (`app/answering/prompts/v2.txt`, default): general question + only country/entity sources → refuse and name them (u07 fixed; q30 became an over-refusal, its company-wide chunk is never retrieved, even at k=20); include conditions and say where details live (q54 fixed, q24 not); look for other values before answering conflicts.
+- **u01 relabeled → q54 (tricky)**: `stock-options.md` line 35 says RSUs "generally ... vest over two to four years"; the label had missed it. Key facts: "two to four years", "slide deck". Now 61 = 37 simple, 8 multi, 6 tricky, 3 conflict, 7 unanswerable.
+- **Bug found by an eval run:** a DNS outage raised `httpx.ConnectError`, which `GeminiClient` didn't catch (only timeouts): 13 eval questions crashed, and the API would have returned a 500. Now any `httpx.TransportError` → transient `LLMError` → retried, then `failed`. Tests in `test_answering.py`.
+- Code license: `LICENSE` (MIT, same as the invoice project); README has the before→after table and findings → fixes.
+- Open: q27 (rank 23: BM25 or query rewriting), q24 (omits a condition), q30/q53 over-refusals. A main-model run (3-4 days of free quota) would give the numbers for the default model.
 
 ## Scope discipline
 
@@ -251,6 +270,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 4 | Verification checks + refusal policy | done (4 checks + opt-in weak_retrieval, 90 tests) |
 | 5 | Eval harness (confident-wrong answers headline) | done (lite run: 6/61 confident-wrong, 89% answerable correct, checks caught 0 wrong answers) |
 | 6 | Hardening: logging, Docker prod, README numbers, CI | done (JSON logs, prod image, README, CI green on GitHub) |
+| 7 | Fixes driven by the eval | done (k=12, scope rule, prompt v2: confident-wrong 6 → 2 of 61) |
 
 Update the Status column when a phase is done.
 

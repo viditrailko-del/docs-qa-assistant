@@ -4,6 +4,7 @@ No DB, no real LLM: answers come from the fake LLM or are written by hand."""
 
 import json
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -172,6 +173,25 @@ def test_summarize(fake_llm):
     assert s["citations"] == {"total": 3, "valid_rate": round(2 / 3, 3), "cites_labeled_evidence": 1.0}
     assert s["to_review"] == ["q13", "q99"]
     assert s["llm_calls"] == 4 and s["failed"] == 0
+
+
+def test_judgments_carry_over_only_to_identical_answers(fake_llm, tmp_path):
+    from eval.run import carry_judgments, write_json
+
+    def make_run(name: str, answers: dict[str, str]) -> Path:
+        run = tmp_path / name
+        write_json(run / "manifest.json", {"questions": list(answers), "min_similarity": 0.0})
+        for qid, text in answers.items():
+            write_json(run / "raw" / f"{qid}.json", frozen(fake_llm, answer_json(text), question={**Q, "id": qid}))
+        return run
+
+    old = make_run("old", {"q13": "Books are limited to $60 a year.", "q12": "Books are limited to $60 a year."})
+    write_json(old / "judgments.json", {"q13": {"verdict": "correct", "by": "Vidit"},
+                                        "q12": {"verdict": "wrong", "by": "Vidit"}})
+    new = make_run("new", {"q13": "Books are limited to $60 a year.", "q12": "Up to $60 a year for books."})
+    assert carry_judgments(old, new) == ["q13"]  # q12's answer changed: it needs a fresh human look
+    carried = json.loads((new / "judgments.json").read_text(encoding="utf-8"))
+    assert carried == {"q13": {"verdict": "correct", "by": "Vidit", "carried_from": "old"}}
 
 
 def test_out_of_quota():

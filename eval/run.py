@@ -9,6 +9,8 @@
         ~20 calls/day on the main model, so a full run (61 questions) is spread over days.
     python -m eval.run score [<run_id | latest>]
         Re-scores a frozen run. Offline and free: re-runs the checks, re-applies judgments.
+    python -m eval.run carry-judgments <old_run> [<new_run | latest>]
+        Copies human verdicts to a new run where the answer text is word-for-word identical.
 
 Why two steps (same as the invoice project): the LLM call is the only slow, rate-limited,
 non-deterministic part. Freezing it makes scoring reproducible, and lets a check or metric
@@ -180,7 +182,7 @@ def new_manifest(args: argparse.Namespace, questions: dict[str, dict]) -> dict[s
         "schema_sha": _sha(json.dumps(response_schema(), sort_keys=True)),
         "questions_sha": questions_sha(),
         "git_commit": _git_commit(),
-        "questions": only or list(questions),
+        "questions": only or list(load_questions(aliases=False)),
     }
 
 
@@ -196,7 +198,8 @@ def score_run(run_dir: Path) -> tuple[dict[str, Any], list[QuestionScore]]:
     for qid in manifest["questions"]:
         path = run_dir / "raw" / f"{qid}.json"
         if path.exists():
-            scores.append(score_question(questions[qid], read_json(path), judgments.get(qid),
+            judgment = judgments.get(qid) or judgments.get(questions[qid]["id"])  # old or current id
+            scores.append(score_question(questions[qid], read_json(path), judgment,
                                          min_similarity=manifest["min_similarity"]))
     return manifest, scores
 
@@ -276,11 +279,36 @@ def render_markdown(manifest: dict, s: dict, scores: list[QuestionScore]) -> str
     return "\n".join(lines)
 
 
+def carry_judgments(src_dir: Path, dst_dir: Path) -> list[str]:
+    """Copy human verdicts from one run to another, ONLY where the answer text is identical:
+    a verdict is about one exact answer, so a changed answer needs a fresh human look."""
+    src_path = src_dir / "judgments.json"
+    if not src_path.exists():
+        return []
+    src_j, (_, src_scores), (_, dst_scores) = read_json(src_path), score_run(src_dir), score_run(dst_dir)
+    dst_path = dst_dir / "judgments.json"
+    dst_j = read_json(dst_path) if dst_path.exists() else {}
+    old = {s.id: s.answer_text for s in src_scores}
+    carried = []
+    for s in dst_scores:
+        if s.id in src_j and s.id not in dst_j and s.answer_text and s.answer_text == old.get(s.id):
+            dst_j[s.id] = {**src_j[s.id], "carried_from": src_dir.name}
+            carried.append(s.id)
+    write_json(dst_path, dst_j)
+    return carried
+
+
 # --- helpers -------------------------------------------------------------------------
 
 
-def load_questions() -> dict[str, dict]:
-    return {q["id"]: q for q in read_json(QUESTIONS)["questions"]}
+def load_questions(*, aliases: bool = True) -> dict[str, dict]:
+    """id -> question. With aliases, a relabeled question is also found under its old id
+    (`renamed_from`), so older runs are scored against the CURRENT label."""
+    qs = read_json(QUESTIONS)["questions"]
+    out = {q["id"]: q for q in qs}
+    if aliases:
+        out |= {q["renamed_from"]: q for q in qs if q.get("renamed_from")}
+    return out
 
 
 def questions_sha() -> str:
@@ -355,10 +383,18 @@ def main() -> None:
     an.add_argument("--pace", type=float, default=13.0, help="seconds between questions (per-minute limit)")
     sc = sub.add_parser("score", help="re-score a frozen run (offline, free)")
     sc.add_argument("run", nargs="?", default="latest")
+    cj = sub.add_parser("carry-judgments", help="reuse human verdicts where the answer text is identical")
+    cj.add_argument("source_run")
+    cj.add_argument("target_run", nargs="?", default="latest")
     args = parser.parse_args()
 
     if args.cmd == "answer":
         cmd_score(cmd_answer(args))
+    elif args.cmd == "carry-judgments":
+        src, dst = resolve_run(args.source_run), resolve_run(args.target_run)
+        carried = carry_judgments(src, dst)
+        print(f"carried {len(carried)} verdict(s) from {src.name}: {', '.join(carried) or '-'}")
+        cmd_score(dst)
     else:
         cmd_score(resolve_run(args.run))
 

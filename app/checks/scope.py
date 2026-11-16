@@ -79,13 +79,23 @@ def check_scope(question: str, answer: LLMAnswer, sources: Sequence[SourceText])
         return []  # the question is about a specific country: country sources are the right ones
     by_label = {s.label: s for s in sources}
     flags: list[Flag] = []
+    all_scopes: list[set[str]] = []
     for i, statement in enumerate(answer.statements):
-        if countries_in(statement.text):
-            continue  # the statement itself says which country it's about
         cited = [by_label[c.source.strip()] for c in statement.citations if c.source.strip() in by_label]
         scopes = [source_scope(s) for s in cited]
+        all_scopes += scopes
+        if countries_in(statement.text):
+            continue  # the statement itself says which country it's about
         if cited and all(scopes):
             names = sorted(set().union(*scopes))
             flags.append(Flag("scope_mismatch", Severity.warning,
                               f"states a general rule, but its sources are specific to {', '.join(names)}", i))
+    # Whole answer: a general question answered ONLY from country-specific sources, even if every
+    # statement names its country (eval u07: "how do I record my hours?" answered with France's
+    # rules). Honest per sentence, but it answers a different question than the one asked.
+    if not flags and all_scopes and all(all_scopes):
+        names = sorted(set().union(*all_scopes))
+        flags.append(Flag("scope_mismatch", Severity.warning,
+                          f"the question is general, but the whole answer comes from sources specific to "
+                          f"{', '.join(names)}"))
     return flags
