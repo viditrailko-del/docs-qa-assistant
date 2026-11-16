@@ -231,7 +231,7 @@ What was built:
 ### Phase 6: hardening
 Structured JSON logging, prod Docker image, CI, README with real eval numbers and a findings → fixes table. Optional minimal chat page, only after the eval works.
 
-**Done (2026-11-16)**, except CI has never run: the repo has no GitHub remote yet.
+**Done (2026-11-16).** Repo: https://github.com/viditrailko-del/docs-qa-assistant (public, `origin`); first CI run passed the same day.
 - **Logging** (`app/logging_setup.py`, copied from the invoice project, stdlib only): `log_event(log, level, "event", **fields)`; `LOG_FORMAT=json` (prod image default) or `text` (dev). Events: `startup`, `gemini_api_key_missing` (error, not fatal), `document_ingested`, `llm_call_failed`, `llm_output_invalid`, and one **`ask_finished`** per question (ask_id, status, model, prompt_version, k, top_similarity, llm_calls, failed_calls, latency, tokens, cost_usd, flag codes). **The question text is never logged** (may hold personal details); `ask_id` links to it in the DB. uvicorn's loggers are re-routed at startup (`adopt_uvicorn_loggers`). Tests: `tests/test_logging.py`.
 - **Dockerfile targets:** `dev` (compose) and `prod` (default: `--no-dev`, no uv, non-root uid 10001, JSON logs, HEALTHCHECK on /health, only `app/` + `alembic/`, ~810 MB). Both bake the embedding model into `/opt/models`; prod `chmod -R a+rX` it (some cache files are 0600, the non-root user got "Permission denied") and sets `HF_HUB_OFFLINE=1`. Migrations are a separate deploy step. Smoke-tested against the dev DB: healthy, /search works, JSON logs.
 - **CI** `.github/workflows/tests.yml`: corpus `--verify` + `check_questions` (plain Python), dev image, pytest, `alembic upgrade head` + `alembic check`, prod image build. No secrets needed.
@@ -250,7 +250,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 3 | Gemini answers with cited quotes | done (POST /ask, prompt v1, 61 tests, smoke test 4/4) |
 | 4 | Verification checks + refusal policy | done (4 checks + opt-in weak_retrieval, 90 tests) |
 | 5 | Eval harness (confident-wrong answers headline) | done (lite run: 6/61 confident-wrong, 89% answerable correct, checks caught 0 wrong answers) |
-| 6 | Hardening: logging, Docker prod, README numbers, CI | done (JSON logs, prod image, README; CI written, not yet run: no remote) |
+| 6 | Hardening: logging, Docker prod, README numbers, CI | done (JSON logs, prod image, README, CI green on GitHub) |
 
 Update the Status column when a phase is done.
 

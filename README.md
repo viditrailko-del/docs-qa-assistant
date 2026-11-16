@@ -1,5 +1,7 @@
 # Docs Q&A Assistant
 
+[![tests](https://github.com/viditrailko-del/docs-qa-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/viditrailko-del/docs-qa-assistant/actions/workflows/tests.yml)
+
 A backend service that answers questions from company documents with an LLM (Gemini). It is
 built to be **safe when the LLM is wrong**: every answer cites exact quotes, the citations
 are checked in code, and the assistant refuses when the documents don't say.
