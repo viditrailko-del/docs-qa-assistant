@@ -258,4 +258,4 @@ Update the Status column when a phase is done.
 
 - Small, reviewable changes; run the relevant tests after each change.
 - When unsure about a design choice that affects the data model or API contract, ask before implementing.
-- The user is a beginner building a freelance portfolio: briefly explain *why* when introducing a new pattern or tool (embeddings, pgvector, hybrid search, recall@k...).
+- Briefly explain *why* when introducing a new pattern or tool (embeddings, pgvector, hybrid search, recall@k...).
