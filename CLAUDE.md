@@ -46,6 +46,8 @@ docker compose run --rm -T api uv run --frozen pytest -q                   # all
 docker compose run --rm -T api uv run --frozen alembic upgrade head        # apply migrations
 docker compose run --rm -T api uv run --frozen alembic check               # models vs migrations drift
 docker compose run --rm -T api uv run --frozen python -m scripts.ingest_corpus   # ingest corpus (~3.5 min first time, idempotent)
+docker compose run --rm -T api uv run --frozen python -m eval.run answer --limit 15   # answer eval (REAL Gemini, resumable)
+docker compose run --rm -T api uv run --frozen python -m eval.run score            # re-score latest run (free)
 docker compose exec -T db psql -U rag -d rag -c "select ..."               # inspect DB
 docker compose build api                                                   # after changing dependencies or the embedding model
 python -m uv lock                                                          # after editing pyproject.toml (then rebuild)
@@ -198,6 +200,34 @@ What was built:
 - citation validity rate, recall@k, cost and latency per question
 - correctness judged deterministically where possible (key facts/numbers); any LLM judge is spot-checked by hand
 
+**Done (2026-11-16).** Harness + first full run.
+- `python -m eval.run answer [--only ids] [--limit N] [--model M] [--fallback-model M] [--prompt-version v] [--k 8] [--pace 13]` runs the real pipeline (vector search → `answer_question()` → checks) and freezes each result in `eval/results/answers/<run_id>/raw/<qid>.json` (gitignored): status, answer, flags, the sources **with their text** (a re-ingest can't silently change what an old answer is compared with), every attempt (raw response, tokens, cost, latency). Writes nothing to the dev DB's `asks`.
+- `--resume <run_id|latest> [--limit N]` continues with the manifest's settings; `failed` questions are retried. A daily-quota 429 stops the run cleanly (nothing saved for that question) and prints the resume command. **No fallback model by default**: one run = one model, so numbers compare. 61 questions on the main model ≈ 3-4 days of free quota; lite is ~3 s and ~$0.002/question (not billed on free tier).
+- `python -m eval.run score [run|latest]` (free, offline) re-runs the pure checks on the frozen answers, so a check change is measured without new calls. Writes `report.json` + `report.md`. Manifest records model, prompt version, k, schema sha, questions.json sha, git commit (read from `.git` since the container has no git).
+- `eval/scoring.py` (pure, `tests/test_eval_scoring.py`): outcomes `correct`, `correct_flagged`, **`confident_wrong`** (wrong/partial/answered-unanswerable with no flag: the headline), `wrong_flagged`, `over_refusal`, `correct_refusal`, `failed`. Verdict = every `key_fact` in the answer text (number words up to twelve = digits; phrase match word-bounded, hyphen-insensitive, allowing an s/ed/ing ending; or numbers by value + word prefixes); partial counts as wrong. Also: flag catch rate / precision, citation validity, "cites the labeled evidence", evidence shown (hit@k / full@k from the frozen sources), conflict `sources_disagree` rate, cost, latency.
+- Human verdicts: `<run>/judgments.json` `{"q05": {"verdict": "correct", "by": "Vidit", "note": "..."}}` overrides the auto verdict (never the label). The report's "to review" list = auto verdict not correct, or correct but the labeled evidence not cited.
+- **First full run** `20261116-044507-v1-gemini-3.5-flash-lite` (all 61, lite model, prompt v1, k=8, git f085e02; 12 verdicts by Vidit in its judgments.json):
+
+  | metric | value |
+  |---|---|
+  | **confident-wrong** | **6/61 (10%)**: q23, q24, q27, q42, q47, u07 |
+  | answerable correct (flagged or not) / unflagged | 89% / 85% of 53 |
+  | over-refusals | 1 (q53, HealthKick) |
+  | unanswerable correctly refused | 7/8 |
+  | flag catch rate / precision | **0% / 0%** (2 flags, both on correct answers) |
+  | citations valid / cite the labeled evidence | 99% of 106 / 96% |
+  | evidence shown hit@8 / full@8 | 94% / 87% |
+  | cost / latency | $0.0016 per question ($0.10 total), median 2.3 s; 63 calls, 0 failed |
+
+  Findings (Phase 6 candidates):
+  - **The checks caught none of the wrong answers.** Every wrong answer had real quotes and supported numbers: the failures are omissions and scope, not fabrication.
+  - **Conflicts (q23, q27):** only one side reported, `sources_disagree` false (reported on 1/3 conflicts) even though both sides were retrieved. Candidate check: two cited/retrieved sources give different values for the asked thing, answer states one.
+  - **Incomplete answers (q24 omits "after 3 months", q47 says the $1,000 amount is missing though its chunk was shown).**
+  - **q42:** USERRA "5 years" chunk not retrieved (vague "maximum required by law"): retrieval miss, keyword/BM25 territory.
+  - **u07:** answered a general question with France-only rules instead of refusing; `scope_mismatch` doesn't fire because the statement names France. Candidate: question names no country, every source is scoped to one → warn even if the answer names it.
+  - Key-fact matcher bugs found by this run (inflections, number words) were fixed in code, not by judgments.
+  - `judgments.json` lives in the gitignored results folder: human verdicts exist only on this machine.
+
 ### Phase 6: hardening
 Structured JSON logging, prod Docker image, CI, README with real eval numbers and a findings → fixes table. Optional minimal chat page, only after the eval works.
 
@@ -212,7 +242,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 2 | Hybrid retrieval + retrieval eval | done (vector default: hit@5 0.92, MRR 0.75; hybrid measured, lost) |
 | 3 | Gemini answers with cited quotes | done (POST /ask, prompt v1, 61 tests, smoke test 4/4) |
 | 4 | Verification checks + refusal policy | done (4 checks + opt-in weak_retrieval, 90 tests) |
-| 5 | Eval harness (confident-wrong answers headline) | not started |
+| 5 | Eval harness (confident-wrong answers headline) | done (lite run: 6/61 confident-wrong, 89% answerable correct, checks caught 0 wrong answers) |
 | 6 | Hardening: logging, Docker prod, README numbers, CI | not started |
 
 Update the Status column when a phase is done.
