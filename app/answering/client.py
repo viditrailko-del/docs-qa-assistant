@@ -6,6 +6,7 @@ never call the real API (rule: tests never hit Gemini). Adapted from the invoice
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 from dataclasses import dataclass
@@ -17,6 +18,19 @@ from google import genai
 from google.genai import errors, types
 
 from app.config import get_settings
+from app.logging_setup import log_event
+
+try:  # google-genai 3.x sends requests through httpx2, a separate package: its errors are NOT httpx errors.
+    import httpx2
+except ImportError:  # pragma: no cover - older SDKs use plain httpx
+    httpx2 = httpx
+
+log = logging.getLogger(__name__)
+
+# Network-level failures from either HTTP library. Found in a sister project (2026-11-17): a
+# "Server disconnected" from httpx2 escaped the httpx-only handlers and crashed the eval run.
+TIMEOUT_ERRORS = (httpx.TimeoutException, httpx2.TimeoutException)
+TRANSPORT_ERRORS = (httpx.TransportError, httpx2.TransportError)
 
 TRANSIENT_CODES = {408, 429, 500, 502, 503, 504}  # rate limit, server errors, overloaded
 
@@ -77,12 +91,17 @@ class GeminiClient:
         except errors.APIError as e:
             raise LLMError(f"{e.code}: {str(e)[:500]}", transient=is_transient(e.code, str(e)),
                            latency_ms=_ms_since(start)) from e
-        except httpx.TimeoutException as e:
+        except TIMEOUT_ERRORS as e:
             raise LLMError("timeout", transient=True, latency_ms=_ms_since(start)) from e
-        except httpx.TransportError as e:
-            # Network down, DNS failure, connection reset (found by the eval: a DNS outage
-            # crashed 13 questions, and would have been an HTTP 500 in the API). Retryable.
+        except TRANSPORT_ERRORS as e:
+            # Network down, DNS failure, connection reset, server disconnected (found by the eval:
+            # a DNS outage crashed 13 questions, and would have been an HTTP 500 in the API). Retryable.
             raise LLMError(f"network: {type(e).__name__}: {e}"[:500], transient=True,
+                           latency_ms=_ms_since(start)) from e
+        except Exception as e:  # anything else the SDK throws must still end as a `failed` ask (rule 7)
+            log_event(log, logging.ERROR, "llm_unexpected_error", model=model, error=type(e).__name__,
+                      exc_info=True)
+            raise LLMError(f"unexpected: {type(e).__name__}: {e}"[:500], transient=False,
                            latency_ms=_ms_since(start)) from e
 
         usage = resp.usage_metadata

@@ -246,11 +246,24 @@ def _gemini_raising(exc):
     __import__("httpx").ConnectError("[Errno -2] Name or service not known"),  # DNS outage (eval, 2026-11-16)
     __import__("httpx").ReadError("connection reset"),
     __import__("httpx").ReadTimeout("slow"),
+    # google-genai 3.x uses httpx2, whose errors are not httpx subclasses (sister project, 2026-11-17)
+    __import__("httpx2").RemoteProtocolError("Server disconnected without sending a response."),
+    __import__("httpx2").ConnectError("dns"),
+    __import__("httpx2").ReadTimeout("slow"),
 ])
 def test_network_errors_become_transient_llm_errors(exc):
     with pytest.raises(LLMError) as info:
         _gemini_raising(exc).generate(prompt="p", schema={}, model="m")
     assert info.value.transient
+    expected = "timeout" if "Timeout" in type(exc).__name__ else "network: "
+    assert str(info.value).startswith(expected)
+
+
+def test_unexpected_sdk_error_is_a_permanent_llm_error():
+    with pytest.raises(LLMError) as info:
+        _gemini_raising(ValueError("weird")).generate(prompt="p", schema={}, model="m")
+    assert not info.value.transient
+    assert str(info.value).startswith("unexpected: ValueError")
 
 
 def test_network_outage_ends_failed_not_crash(client, ingested):  # noqa: F811
