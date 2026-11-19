@@ -51,8 +51,11 @@ WORKDIR /app
 # Same base image as prod-deps, so the venv's python symlinks stay valid.
 COPY --from=prod-deps /opt/venv /opt/venv
 COPY --from=prod-deps /opt/models /opt/models
-# Only what runs: the app (prompts included) and migrations. No tests, eval, corpus.
+# Only what runs: the app (prompts and the demo index included), migrations, and the frozen corpus
+# (~1 MB: the demo seeds its database from it). No tests, eval, scripts.
 COPY app ./app
+COPY corpus ./corpus
+COPY docker/demo-start.sh ./docker/demo-start.sh
 COPY alembic ./alembic
 COPY alembic.ini ./
 USER app

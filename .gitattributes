@@ -3,3 +3,6 @@
 
 # Corpus: stored byte-for-byte. Line-ending conversion would change the sha256 in manifest.json.
 corpus/** -text
+
+# Demo index: exact float32 chunk vectors.
+app/demo/index/vectors.f32 binary

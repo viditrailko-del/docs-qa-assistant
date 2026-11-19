@@ -21,8 +21,8 @@ DOCS = ROOT / "corpus" / "handbook"
 MANIFEST = ROOT / "corpus" / "manifest.json"
 QUESTIONS = ROOT / "eval" / "questions" / "questions.json"
 
-TYPES = {"simple", "multi", "tricky", "conflict", "unanswerable"}
-EXPECT = {"simple": "answer", "multi": "answer", "tricky": "answer",
+TYPES = {"simple", "multi", "tricky", "conflict", "injection", "unanswerable"}
+EXPECT = {"simple": "answer", "multi": "answer", "tricky": "answer", "injection": "answer",
           "conflict": "answer_both", "unanswerable": "refuse"}
 
 _QUOTES = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', " ": " "})

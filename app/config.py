@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +18,10 @@ class Settings(BaseSettings):
     # Changing the model changes every vector: re-embed all chunks (and EMBED_DIM + a migration).
     embed_model: str = "BAAI/bge-small-en-v1.5"
     embed_cache_dir: str | None = None  # /opt/models in the image
+    # ONNX threads. None = one per CPU core the machine has. On a small CPU quota (Render free: 0.1 CPU)
+    # that many threads stall each other: embedding one question never finished in 10 min; with 1 thread
+    # it takes ~0.15 s. The demo start script sets 1.
+    embed_threads: int | None = None
 
     # Chunking: ~1200 chars is ~250-300 tokens, a paragraph or two of policy text.
     chunk_max_chars: int = 1200
@@ -39,6 +44,26 @@ class Settings(BaseSettings):
     # by country pages (u07 fixed, q30 now an over-refusal), states conditions and pointers.
     prompt_version: str = "v2"
     llm_retry_backoff_s: float = 2.0  # waits 2s, then 4s, between retries
+
+    # Public demo (Phase 8). Off: every /demo route answers 404.
+    demo_mode: bool = False
+    # Live questions run on flash-lite with NO fallback: the main model's ~20 requests/day are too few to share
+    # between demos. One question is usually one call (eval: 65 calls for 61 questions), at most 3 (retries).
+    demo_live_model: str = "gemini-3.5-flash-lite"
+    demo_live_daily_limit: int = 30  # whole demo, per UTC day (the support demo's 30 tickets share the key)
+    demo_live_per_ip_per_hour: int = 5
+    demo_question_max_chars: int = 300
+    demo_reset_token: str = ""  # empty: POST /demo/reset is off
+
+    @field_validator("database_url")
+    @classmethod
+    def _psycopg_driver(cls, url: str) -> str:
+        """Hosted Postgres (Neon, Render) hands out postgres:// or postgresql:// URLs; SQLAlchemy would pick
+        psycopg2 for those, which isn't installed. Use psycopg 3."""
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix):]
+        return url
 
 
 @lru_cache

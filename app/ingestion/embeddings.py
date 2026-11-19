@@ -26,11 +26,11 @@ class Embedder(Protocol):
 
 
 class FastEmbedder:
-    def __init__(self, model_name: str, cache_dir: str | None = None) -> None:
+    def __init__(self, model_name: str, cache_dir: str | None = None, threads: int | None = None) -> None:
         from fastembed import TextEmbedding  # imported here: tests never load the real model
 
         self.model_name = model_name
-        self._model = TextEmbedding(model_name, cache_dir=cache_dir)
+        self._model = TextEmbedding(model_name, cache_dir=cache_dir, threads=threads)
         self.dim = len(self.embed_query("dimension probe"))
 
     def embed_passages(self, texts: list[str]) -> list[list[float]]:
@@ -44,4 +44,4 @@ class FastEmbedder:
 def get_embedder() -> Embedder:
     """FastAPI dependency. Loading the model takes ~1s, so it's done once per process."""
     s = get_settings()
-    return FastEmbedder(s.embed_model, s.embed_cache_dir)
+    return FastEmbedder(s.embed_model, s.embed_cache_dir, s.embed_threads)

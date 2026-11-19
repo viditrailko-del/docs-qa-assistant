@@ -40,6 +40,19 @@ jobs:
       - name: Build production image
         run: docker build -t docs-qa-api .
 
-      - name: Show Postgres logs on failure
+      # What Render runs (render.yaml): the start script on a brand-new database, a postgres:// URL as Neon gives
+      # it, then every recorded scenario must end where the eval scored it, and the guards must hold.
+      - name: Demo boots on a fresh database and replays every scenario
+        run: |
+          docker compose exec -T db psql -U rag -d rag -c "create database rag_demo"
+          NET=$(docker inspect "$(docker compose ps -q db)" -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+          docker run -d --name demo --network "$NET" -p 8001:10000 -e PORT=10000 -e DEMO_MODE=true \
+            -e DATABASE_URL=postgres://rag:rag@db:5432/rag_demo docs-qa-api sh docker/demo-start.sh
+          for i in $(seq 1 120); do curl -sf localhost:8001/health && break; sleep 1; done
+          python -m demo.check_replays http://localhost:8001
+
+      - name: Show logs on failure
         if: failure()
-        run: docker compose logs db
+        run: |
+          docker compose logs db
+          docker logs demo || true

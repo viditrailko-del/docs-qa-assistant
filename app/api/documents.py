@@ -31,7 +31,8 @@ def _count(db: Session, doc_id: uuid.UUID) -> int:
 
 
 @router.post("", response_model=DocumentOut, status_code=status.HTTP_201_CREATED,
-             responses={200: {"description": "Already ingested (same bytes): existing document"}})
+             responses={200: {"description": "Already ingested (same bytes): existing document"},
+                        403: {"description": "Uploads are off on the public demo"}})
 def upload_document(
     response: Response,
     db: DbDep,
@@ -41,6 +42,9 @@ def upload_document(
     embedder: Embedder = Depends(get_embedder),
     settings: Settings = Depends(get_settings),
 ) -> DocumentOut:
+    if settings.demo_mode:
+        # The demo's documents are fixed: an upload would change what recorded questions retrieve.
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "uploads are off on the public demo: the documents are fixed")
     name = path or file.filename or "document.md"
     if not name.lower().endswith((".md", ".markdown")):
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "only Markdown (.md) files are supported")
