@@ -303,6 +303,10 @@ free tier. All `/demo/*` routes 404 unless `DEMO_MODE=true`. Built 2026-11-19 on
   keeps documents) + nightly `.github/workflows/demo-reset.yml` (00:10 UTC). CI boots the prod image on a fresh
   DB and runs `demo/check_replays.py`. Rehearsed locally at 0.1 CPU / 512 MB: first boot 45 s, restart 40 s,
   14/14 replays ok (~0.1-0.3 s each locally), guards ok, reset ok, ~318 MB. Account steps: `demo/DEPLOY.md`.
+- **Deployed 2026-11-19**: https://docs-qa-assistant-demo.onrender.com (Render free, `virginia`; database
+  `rag_demo` in the support demo's Neon project; the demos' shared Gemini key). Checked from outside: 14/14
+  replays match (~0.7-1.2 s each), guards ok (upload 403, reset 403 with a wrong token), live question
+  "international flight" -> verified "21 days", 1 flash-lite call, 3.1 s.
 - Known false alarm shown on purpose (scenario q22): `normalize` forgives `**` but not single-`*` italics, so a
   quote of `*International SOS 24/7 Assistance:*` text is flagged `quote_not_in_source`.
 
@@ -320,7 +324,7 @@ Build in phase order. No auth, queues, frontend, or agent features until the eva
 | 5 | Eval harness (confident-wrong answers headline) | done (lite run: 6/61 confident-wrong, 89% answerable correct, checks caught 0 wrong answers) |
 | 6 | Hardening: logging, Docker prod, README numbers, CI | done (JSON logs, prod image, README, CI green on GitHub) |
 | 7 | Fixes driven by the eval | done (k=12, scope rule, prompt v2: confident-wrong 6 → 2 of 61) |
-| 8 | Public live demo | built (14 replay scenarios, capped live mode, page, reset, CI boot check); not deployed yet |
+| 8 | Public live demo | done (https://docs-qa-assistant-demo.onrender.com: Render virginia + Neon `rag_demo`, 14/14 replays checked live) |
 
 Update the Status column when a phase is done.
 

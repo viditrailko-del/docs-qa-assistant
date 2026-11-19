@@ -10,6 +10,11 @@ The chatbot is the easy part. This project is about the reliability layer around
 about measuring it: an eval harness counts how often a wrong answer would reach a user
 looking verified (**confident-wrong answers**), on 61 hand-labeled questions.
 
+**Live demo: https://docs-qa-assistant-demo.onrender.com** (free server: the first visit can take about a
+minute to wake it). Replay 14 recorded questions (everyday questions, ones the documents can't answer, prompt
+injections, mistakes the checks caught, and what they can't catch) through the real search and checks, or ask
+your own on real Gemini (capped per day). How it's built: [demo/DEPLOY.md](demo/DEPLOY.md).
+
 Documents: 60 pages of the public [GitLab Handbook](https://handbook.gitlab.com) (benefits,
 leave, expenses, travel, referrals...), as an "employee helpdesk" corpus. Built on the public
 GitLab Handbook; not affiliated with or endorsed by GitLab (see [corpus/SOURCE.md](corpus/SOURCE.md)).
