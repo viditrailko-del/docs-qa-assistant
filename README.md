@@ -19,9 +19,7 @@ Documents: 60 pages of the public [GitLab Handbook](https://handbook.gitlab.com)
 leave, expenses, travel, referrals...), as an "employee helpdesk" corpus. Built on the public
 GitLab Handbook; not affiliated with or endorsed by GitLab (see [corpus/SOURCE.md](corpus/SOURCE.md)).
 
-Built with [Claude Code](https://claude.com/claude-code) as a pair programmer. I made the
-design and scope decisions, verified every question label and eval verdict by hand, and
-reviewed the changes.
+I architected the retrieval and verification pipeline, designed the deterministic quote/number/scope checks, built the 61-question eval harness, and verified every label and verdict by hand using Claude Code as a pair-programming tool during implementation.
 
 ## How it works
 
